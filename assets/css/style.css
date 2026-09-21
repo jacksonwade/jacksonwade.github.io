@@ -50,6 +50,8 @@
   --line:    #e4e4e4;
   --sans:    'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --serif:   'Newsreader', Georgia, 'Times New Roman', serif;
+  --mono:    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --code-bg: #f4f4f5;
   --maxw:    52rem;
   --pad:     clamp(1.5rem, 6vw, 4rem);
   --radius:  14px;                     /* rounded image corners */
@@ -63,6 +65,7 @@
   --muted: #b7b7b7;
   --line:  #26262a;
   --body:  #eaeaea;                    /* near-white body text (not pure white) */
+  --code-bg: #17171a;
 }
 :root { --body: var(--fg); }          /* light theme: body text = fg */
 
@@ -668,6 +671,35 @@ a.entry-title:hover { text-decoration: underline; text-underline-offset: 4px; }
 }
 .d-list { margin: 0 0 1.4rem; padding-left: 1.25rem; }
 .d-list li { margin: 0 0 0.5rem; }
+.d-ol { margin: 0 0 1.4rem; padding-left: 1.4rem; }
+.d-ol li { margin: 0 0 0.5rem; }
+.d-body strong { font-weight: 600; color: var(--fg); }
+.d-body em { font-style: italic; }
+.d-hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  width: 4rem;
+  margin: 2.75rem auto;
+}
+.d-code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--code-bg);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+.d-pre {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+.d-pre code { font: inherit; background: none; padding: 0; }
 .d-fig { margin: 2rem 0; }
 .d-fig img { width: 100%; border-radius: var(--radius); display: block; }
 .d-fig figcaption {
