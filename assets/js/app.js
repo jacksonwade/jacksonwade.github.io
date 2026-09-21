@@ -46,14 +46,29 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
-  // Escape text, then turn [label](url) into a link. Internal links ("/research")
-  // go through the SPA router; external links ("https://...") open in a new tab.
+  // Escape text, then apply inline markdown: `code`, [label](url), **bold**, *italic*.
+  // Internal links ("/research") go through the SPA router; external links
+  // ("https://...") open in a new tab.
   function inlineLinks(s) {
-    return esc(s).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, label, url) {
+    // Code spans are lifted out before anything else runs, so markers inside
+    // them (**, *, [ ]) survive to the page as literal characters. The <cN>
+    // sentinel is safe because esc() has already turned every < into &lt;.
+    var codes = [];
+    var out = esc(s).replace(/`([^`]+)`/g, function (m, code) {
+      return '<c' + (codes.push(code) - 1) + '>';
+    });
+    out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, label, url) {
       var external = /^https?:\/\//i.test(url);
       return '<a class="link" href="' + url + '"' +
         (external ? ' target="_blank" rel="noopener"' : '') +
         '>' + label + '</a>';
+    });
+    out = out
+      .replace(/\*\*(\S(?:[^*]*\S)?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*\w])\*(\S(?:[^*]*\S)?)\*(?![*\w])/g, '$1<em>$2</em>')
+      .replace(/(^|[^_\w])_(\S(?:[^_]*\S)?)_(?![_\w])/g, '$1<em>$2</em>');
+    return out.replace(/<c(\d+)>/g, function (m, i) {
+      return '<code class="d-code">' + codes[Number(i)] + '</code>';
     });
   }
   // Build the hero line: {word} becomes a Research link, and every word is
@@ -75,6 +90,21 @@
       return '<span class="hero-word" style="animation-delay:' + delay + '">' + inner + '</span>';
     }).join(' ');
     return html;
+  }
+
+  // Posts and research are generated from markdown with one shared vocabulary
+  // (tag/date/summary); entriesMarkup wants category/year/desc. Hand-written
+  // entries using the older names still pass through unchanged.
+  function entryShape(x) {
+    return {
+      title: x.title,
+      category: x.category || x.tag,
+      year: x.year || x.date,
+      desc: x.desc || x.summary,
+      url: x.url,
+      image: x.image,
+      slug: x.slug,
+    };
   }
 
   // Render a list of research/work entries (image left, text right).
@@ -148,7 +178,7 @@
       '<section class="landing-sec reveal">' +
         '<h2 class="sec-h">Latest publications</h2>' +
         (work.length
-          ? entriesMarkup(work.slice(0, 3), 'research') +
+          ? entriesMarkup(work.slice(0, 3).map(entryShape), 'research') +
             (work.length > 3 ? '<a class="more-link" href="/research">All publications &rarr;</a>' : '')
           : '<p class="note">Nothing yet.</p>') +
       '</section>';
@@ -180,7 +210,7 @@
     }).join('');
     var introBlock = intro ? '<div class="research-intro">' + intro + '</div>' : '';
     var body = items.length
-      ? entriesMarkup(items, 'research')
+      ? entriesMarkup(items.map(entryShape), 'research')
       : '<p class="note"></p>';
     return '<section class="research-page"><h2>Research</h2>' + introBlock + body + '</section>';
   }
@@ -191,10 +221,7 @@
     if (!posts.length) {
       body = '<p class="note">No posts yet.</p>';
     } else {
-      // Reuse the entry layout: map post fields onto it (summary -> desc, date -> year).
-      body = entriesMarkup(posts.map(function (p) {
-        return { title: p.title, category: p.tag, year: p.date, desc: p.summary, url: p.url, image: p.image, slug: p.slug };
-      }), 'blog');
+      body = entriesMarkup(posts.map(entryShape), 'blog');
     }
     return '<section class="research-page"><h2>Writing</h2>' + body + '</section>';
   }
@@ -226,12 +253,15 @@
     '</section>';
   }
 
-  // Turn a plain text body (template literal) into blocks. Markdown-ish:
+  // Turn a markdown body into blocks:
   //   blank line       -> new paragraph
   //   "## heading"     -> heading
   //   "> quote"        -> block quote (consecutive > lines join)
   //   "- item"         -> list item (consecutive - lines become one list)
+  //   "1. item"        -> numbered list item
+  //   "---"            -> horizontal rule
   //   "![cap](/src)"   -> figure with caption
+  //   ``` fence ```    -> code block, inner lines kept verbatim
   // Anything else is prose. A body may also still be an array of block objects.
   function parseBody(body) {
     if (Array.isArray(body)) return body;                 // legacy/explicit blocks
@@ -240,27 +270,42 @@
     var lines = body.replace(/\r/g, '').split('\n');
     var blocks = [];
     var para = [];        // buffered prose lines
-    var list = null;      // buffered list items
+    var list = null;      // buffered bullet items
+    var olist = null;     // buffered numbered items
     var quote = null;     // buffered quote lines
 
     function flushPara()  { if (para.length)  { blocks.push(para.join(' ').trim()); para = []; } }
     function flushList()  { if (list)  { blocks.push({ list: list }); list = null; } }
+    function flushOl()    { if (olist) { blocks.push({ ol: olist }); olist = null; } }
     function flushQuote() { if (quote) { blocks.push({ quote: quote.join(' ').trim() }); quote = null; } }
-    function flushAll()   { flushPara(); flushList(); flushQuote(); }
+    function flushAll()   { flushPara(); flushList(); flushOl(); flushQuote(); }
 
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
       var t = line.trim();
 
+      // Fenced code is consumed raw off `line`, not `t`, so indentation survives.
+      var fence = t.match(/^(`{3,}|~{3,})\s*(\S*)/);
+      if (fence) {
+        flushAll();
+        var closer = fence[1].charAt(0) === '`' ? /^\s*`{3,}\s*$/ : /^\s*~{3,}\s*$/;
+        var code = [];
+        for (i++; i < lines.length && !closer.test(lines[i]); i++) code.push(lines[i]);
+        blocks.push({ code: code.join('\n'), lang: fence[2] });
+        continue;
+      }
+
       if (t === '') { flushAll(); continue; }
 
       var img = t.match(/^!\[(.*?)\]\((.+?)\)$/);
-      if (img)               { flushAll(); blocks.push({ img: img[2], cap: img[1] }); continue; }
+      if (img)                  { flushAll(); blocks.push({ img: img[2], cap: img[1] }); continue; }
       if (/^#{1,3}\s+/.test(t)) { flushAll(); blocks.push({ h: t.replace(/^#{1,3}\s+/, '') }); continue; }
-      if (/^>\s?/.test(t))   { flushPara(); flushList(); (quote = quote || []).push(t.replace(/^>\s?/, '')); continue; }
-      if (/^[-*]\s+/.test(t)){ flushPara(); flushQuote(); (list = list || []).push(t.replace(/^[-*]\s+/, '')); continue; }
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(t)) { flushAll(); blocks.push({ hr: true }); continue; }
+      if (/^>\s?/.test(t))      { flushPara(); flushList(); flushOl(); (quote = quote || []).push(t.replace(/^>\s?/, '')); continue; }
+      if (/^[-*]\s+/.test(t))   { flushPara(); flushOl(); flushQuote(); (list = list || []).push(t.replace(/^[-*]\s+/, '')); continue; }
+      if (/^\d+[.)]\s+/.test(t)){ flushPara(); flushList(); flushQuote(); (olist = olist || []).push(t.replace(/^\d+[.)]\s+/, '')); continue; }
 
-      flushList(); flushQuote(); para.push(t);
+      flushList(); flushOl(); flushQuote(); para.push(t);
     }
     flushAll();
     return blocks;
@@ -268,17 +313,22 @@
 
   // Render one body block. A block is either a string (paragraph) or an
   // object: { h: 'Heading' } | { p: 'text' } | { img: '/path', cap: '...' } |
-  // { quote: 'text' } | { list: ['a','b'] }.
+  // { quote: 'text' } | { list: ['a','b'] } | { ol: ['a','b'] } | { hr: true } |
+  // { code: 'text', lang: 'js' }.
   function blockMarkup(b) {
     if (typeof b === 'string') return '<p>' + inlineLinks(b) + '</p>';
-    if (b.h)     return '<h3 class="d-h">' + esc(b.h) + '</h3>';
+    if (b.h)     return '<h3 class="d-h">' + inlineLinks(b.h) + '</h3>';
     if (b.p)     return '<p>' + inlineLinks(b.p) + '</p>';
-    if (b.quote) return '<blockquote class="d-quote">' + esc(b.quote) + '</blockquote>';
+    if (b.hr)    return '<hr class="d-hr">';
+    if (typeof b.code === 'string') return '<pre class="d-pre"><code>' + esc(b.code) + '</code></pre>';
+    if (b.quote) return '<blockquote class="d-quote">' + inlineLinks(b.quote) + '</blockquote>';
     if (b.list)  return '<ul class="d-list">' + b.list.map(function (li) {
-                    return '<li>' + esc(li) + '</li>'; }).join('') + '</ul>';
+                    return '<li>' + inlineLinks(li) + '</li>'; }).join('') + '</ul>';
+    if (b.ol)    return '<ol class="d-ol">' + b.ol.map(function (li) {
+                    return '<li>' + inlineLinks(li) + '</li>'; }).join('') + '</ol>';
     if (b.img)   return '<figure class="d-fig"><img src="' + esc(b.img) + '" alt="' +
                     esc(b.cap || '') + '" loading="lazy">' +
-                    (b.cap ? '<figcaption>' + esc(b.cap) + '</figcaption>' : '') + '</figure>';
+                    (b.cap ? '<figcaption>' + inlineLinks(b.cap) + '</figcaption>' : '') + '</figure>';
     return '';
   }
 
