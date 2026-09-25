@@ -30,7 +30,7 @@ All of these were chosen by Kamai during brainstorming on 2026-09-25.
 | Draft research | Stays hidden until finished. No placeholder, no "in progress" state |
 | Empty sections | Do not render at all. No heading, no "Nothing yet." |
 | Page generation | Static HTML written at build time. No client-side router |
-| URL shape | `/writing/on-mediocrity`, no trailing slash, no `.html` |
+| URL shape | `/blog/on-mediocrity`, no trailing slash, no `.html` |
 | Palette | Dark only. No toggle, no light palette, no system following |
 | Header | Name only. No nav links |
 | In-post navigation | Sticky contents block in the left margin, closable |
@@ -41,7 +41,7 @@ All of these were chosen by Kamai during brainstorming on 2026-09-25.
 
 ### Why flat `.html` files rather than `dir/index.html`
 
-Kamai asked for `/writing/name` in the address bar, not `/writing/name/`. Tested
+Kamai asked for `/blog/name` in the address bar, not `/blog/name/`. Tested
 against the live site on 2026-09-25:
 
 ```
@@ -51,8 +51,8 @@ against the live site on 2026-09-25:
 ```
 
 GitHub Pages serves `foo.html` at `/foo` with no redirect, while a genuinely
-missing path 404s. So `writing/on-mediocrity.html` is served at
-`/writing/on-mediocrity` exactly as asked. A `dir/index.html` layout would have
+missing path 404s. So `blog/on-mediocrity.html` is served at
+`/blog/on-mediocrity` exactly as asked. A `dir/index.html` layout would have
 forced a trailing slash.
 
 ## Out of scope
@@ -70,7 +70,7 @@ Three kinds of page:
 
 ```
 /                       the index
-/writing/<slug>         one essay,    generated from posts/<file>.md
+/blog/<slug>         one essay,    generated from posts/<file>.md
 /research/<slug>        one entry,    generated from research/<file>.md
 /404.html               a real not-found page
 ```
@@ -90,7 +90,7 @@ emitting finished HTML.
 ```
 posts/*.md      ┐
 research/*.md   ├→  build-content.mjs  →  index.html
-site config     ┘                         writing/<slug>.html
+site config     ┘                         blog/<slug>.html
                                           research/<slug>.html
                                           feed.xml
                                           sitemap.xml
@@ -108,8 +108,8 @@ What is reused from the existing script, unchanged in behaviour:
 
 What changes in that script:
 
-- `normalizeBody` currently maps wikilinks in `posts/` to `/blog/<slug>`. That
-  becomes `/writing/<slug>`.
+- `normalizeBody` needs no change. It already maps wikilinks in `posts/` to
+  `/blog/<slug>`, which is the URL prefix being kept.
 - The markdown-to-HTML renderer must move into the build. It does not live here
   today: `parseBody` and `blockMarkup` in `assets/js/app.js` (lines 266 to 338)
   do that work at runtime in the browser. Port them, do not rewrite them. The
@@ -158,6 +158,8 @@ Research
 - A section renders only if it has at least one published entry. With every
   entry currently `draft: true`, the index today is the name and the footer.
 - `posts/` renders under the heading "Writing", `research/` under "Research".
+  The heading says Writing while the URL prefix stays `/blog/`. That mismatch is
+  deliberate, chosen by Kamai on 2026-09-25, and is not to be tidied up.
 - Each row is one link covering title and date. Title left, date right, on one
   line on desktop, stacked on a phone. The summary sits underneath in the muted
   colour and is not part of the link target.
@@ -178,7 +180,7 @@ Kamai Jackson-Wade                                    links home
 │ Contents×│   Body text, Archivo 18px, 1.8, 36rem measure
 │          │
 │ • Why it │   ## headings carry ids, so
-│   starts │   /writing/on-mediocrity#what-it-costs works
+│   starts │   /blog/on-mediocrity#what-it-costs works
 │   What it│
 │   costs  │
 └──────────┘
@@ -307,7 +309,7 @@ rather than by inspection:
 1. `node scripts/build-content.mjs` succeeds from a clean tree.
 2. With all four entries still `draft: true`, the generated index contains the
    name and the footer and no section headings.
-3. With an entry un-drafted temporarily, `/writing/<slug>` is a real file, and
+3. With an entry un-drafted temporarily, `/blog/<slug>` is a real file, and
    requesting the extensionless path on the deployed site returns 200 with no
    redirect.
 4. A post with three or more `##` headings emits a contents block; one with
@@ -336,4 +338,4 @@ most likely things to want changing at review:
 3. **Deleting `assets/img/` entirely.** 7.5MB of art that nothing will reference
    after this change. Recoverable from git history if wanted later.
 4. **Research entries keep their own URL prefix** (`/research/<slug>` rather
-   than folding everything under `/writing/`), so the two kinds stay separable.
+   than folding everything under `/blog/`), so the two kinds stay separable.
