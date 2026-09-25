@@ -1,4 +1,4 @@
-import { esc } from './markdown.mjs';
+import { esc, parseBody, renderBody } from './markdown.mjs';
 
 export function footer(site) {
   return '<footer class="ftr">' +
@@ -86,5 +86,55 @@ export function indexPage({ site, sections }) {
     bodyClass: 'is-index',
     extraHead: personJsonLd(site),
     content: '<main class="wrap"><h1 class="name">' + esc(site.name) + '</h1>' + body + '</main>',
+  });
+}
+
+export function contentsBlock(headings) {
+  if (headings.length < 3) return '';
+  return '<nav class="toc" id="toc" aria-label="Contents">' +
+    '<div class="toc-head">' +
+      '<span class="toc-h">Contents</span>' +
+      '<button class="toc-close" type="button" aria-label="Hide contents" aria-expanded="true">&times;</button>' +
+    '</div>' +
+    '<ol class="toc-list">' + headings.map(h =>
+      '<li><a class="toc-link" href="#' + esc(h.id) + '">' + esc(h.text) + '</a></li>'
+    ).join('') + '</ol>' +
+  '</nav>' +
+  '<button class="toc-tab" id="toc-tab" type="button" aria-label="Show contents" hidden>Contents</button>';
+}
+
+export function detailPage({ site, item }) {
+  const { html: bodyHtml, headings } = renderBody(parseBody(item.body));
+  const toc = contentsBlock(headings);
+
+  const links = (item.links || []).map(l =>
+    '<a class="d-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
+      esc(l.label) + ' &nearr;</a>'
+  ).join('');
+
+  const content =
+    '<header class="hdr"><a class="brand" href="/">' + esc(site.name) + '</a></header>' +
+    '<main class="wrap d-wrap">' +
+      '<article class="detail">' +
+        '<header class="d-head">' +
+          '<h1 class="d-title">' + esc(item.title) + '</h1>' +
+          (item.date ? '<p class="d-date">' + esc(item.date) + '</p>' : '') +
+          (item.summary ? '<p class="d-sub">' + esc(item.summary) + '</p>' : '') +
+          (links ? '<div class="d-btns">' + links + '</div>' : '') +
+        '</header>' +
+        toc +
+        '<div class="d-body">' + bodyHtml + '</div>' +
+      '</article>' +
+      '<p class="d-top"><a class="link" href="#">Back to top</a></p>' +
+    '</main>';
+
+  return page({
+    site,
+    title: item.title + ' :: ' + site.name,
+    description: item.summary || item.title,
+    canonical: site.url + item.url,
+    bodyClass: 'is-detail' + (toc ? ' has-toc' : ''),
+    content,
+    script: Boolean(toc),
   });
 }

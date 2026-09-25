@@ -84,3 +84,49 @@ test('a title with markup characters is escaped in a row', () => {
   assert.match(html, /A &amp; B &lt;c&gt;/);
   assert.doesNotMatch(html, /<c>/);
 });
+
+import { detailPage, contentsBlock } from '../scripts/lib/templates.mjs';
+
+test('the contents block needs three headings to appear', () => {
+  assert.equal(contentsBlock([{ id: 'a', text: 'A' }, { id: 'b', text: 'B' }]), '');
+  const html = contentsBlock([
+    { id: 'a', text: 'A' }, { id: 'b', text: 'B' }, { id: 'c', text: 'C' },
+  ]);
+  assert.match(html, /href="#a"/);
+  assert.match(html, /toc-close/);
+});
+
+test('a post with three headings gets a contents block and the script', () => {
+  const html = detailPage({ site, item: {
+    ...post, body: '## One\n\ntext\n\n## Two\n\ntext\n\n## Three\n\ntext\n',
+  } });
+  assert.match(html, /class="toc"/);
+  assert.match(html, /contents\.js/);
+  assert.match(html, /id="one"/);
+});
+
+test('a post with one heading gets neither', () => {
+  const html = detailPage({ site, item: { ...post, body: '## One\n\ntext\n' } });
+  assert.doesNotMatch(html, /class="toc"/);
+  assert.doesNotMatch(html, /contents\.js/);
+});
+
+test('an entry with no body at all still renders a page', () => {
+  const html = detailPage({ site, item: { ...post, body: '' } });
+  assert.match(html, /<h1 class="d-title">On My Mediocrity<\/h1>/);
+  assert.match(html, /A summary\./);
+  assert.match(html, /<\/html>/);
+});
+
+test('front matter links render under the subtitle', () => {
+  const html = detailPage({ site, item: {
+    ...post, links: [{ label: 'View on SSRN', url: 'https://ssrn.com/x' }],
+  } });
+  assert.match(html, /View on SSRN/);
+  assert.match(html, /href="https:\/\/ssrn\.com\/x"/);
+});
+
+test('the title tag pairs the post with the site name', () => {
+  const html = detailPage({ site, item: post });
+  assert.match(html, /<title>On My Mediocrity :: Kamai Jackson-Wade<\/title>/);
+});
