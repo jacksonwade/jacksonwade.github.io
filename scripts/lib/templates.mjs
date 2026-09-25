@@ -25,7 +25,7 @@ export function page({ site, title, description, canonical, bodyClass = '', extr
 '<meta property="og:url" content="' + esc(canonical) + '">\n' +
 '<meta property="og:title" content="' + esc(title) + '">\n' +
 '<meta property="og:description" content="' + esc(description) + '">\n' +
-'<link rel="preload" href="/assets/fonts/Archivo-Regular.woff2" as="font" type="font/woff2" crossorigin>\n' +
+'<link rel="preload" href="/assets/fonts/Newsreader-Roman.woff2" as="font" type="font/woff2" crossorigin>\n' +
 '<style>html{background:#0d0d0f}</style>\n' +
 '<link rel="stylesheet" href="/assets/css/style.css">\n' +
 extraHead +
