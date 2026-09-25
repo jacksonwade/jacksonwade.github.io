@@ -141,6 +141,24 @@ Sections render only when they have a published entry, as in the first spec. `po
 | Link in prose | `--accent`, hover `--body`. The only link marked at rest anywhere on the site |
 | Ending | name, email, GitHub, one per line. The name is the way home |
 
+## Content rules
+
+**Dates display as the year alone.** `2026`, never `18 September 2026` and never `18.09.2026`. Full
+dates stay in the front matter, because the build needs them to sort and RSS needs a real publication
+date; only the display collapses. This is not purely a template change: `formatDate` in
+`scripts/lib/content.mjs` gains a `year` field alongside `display`, `sort` and `iso`, holding the
+four-digit year as a string, or `''` when there is no usable date. `readSection` passes it through on
+each item, and the templates render `item.year`. `tests/content.test.mjs` gains coverage for it.
+
+**An entry with no body renders its title, its date, and nothing else.** No fallback to the summary,
+no placeholder, no "coming soon". This holds for blog posts and research entries alike. It is a
+deliberate choice: an unfinished piece should look unfinished.
+
+**The lead block is gone.** An earlier round of this brief specified a front page led by one piece
+showing its opening prose, chosen as the newest of anything across both directories, reacting on
+hover. All of it was built and then dropped. The front page is the name and the two lists. Any rule
+about what "leads" is void.
+
 ## Rules that hold everywhere
 
 - **No italics.** Not on dates, not on blockquotes, not on metadata. Italic metadata is a
