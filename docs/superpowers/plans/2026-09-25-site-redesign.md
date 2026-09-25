@@ -160,9 +160,12 @@ test('assetPath leaves absolute and remote paths alone', () => {
   assert.equal(assetPath('a.jpg'), '/assets/img/a.jpg');
 });
 
-test('parseLinks splits on the last bar', () => {
-  assert.deepEqual(parseLinks(['View | https://e.com/a|b']),
-    [{ label: 'View', url: 'b' }]);
+test('parseLinks splits a label from a url on the bar', () => {
+  assert.deepEqual(parseLinks(['View on SSRN | https://ssrn.com/x']),
+    [{ label: 'View on SSRN', url: 'https://ssrn.com/x' }]);
+});
+
+test('parseLinks defaults the label when there is only a url', () => {
   assert.deepEqual(parseLinks(['https://e.com']),
     [{ label: 'View', url: 'https://e.com' }]);
 });
@@ -1423,10 +1426,10 @@ a { color: inherit; }
 .toc-list li { margin: 0 0 0.5rem; }
 .toc-link { color: var(--muted); text-decoration: none; }
 .toc-link:hover, .toc-link.is-current { color: var(--body); }
-.toc-tab { position: fixed; left: 1rem; top: 40vh; background: none; border: 0;
+.toc-tab { display: block; margin: 0 0 2rem; background: none; border: 0; padding: 0;
            color: var(--muted); cursor: pointer; font-family: var(--sans);
            font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em;
-           text-transform: uppercase; writing-mode: vertical-rl; padding: 0.5rem; }
+           text-transform: uppercase; }
 .toc-tab:hover { color: var(--body); }
 
 .ftr { max-width: var(--measure); margin: 0 auto; padding: 2.5rem 0 4rem;
@@ -1448,7 +1451,13 @@ a { color: inherit; }
     max-height: 70vh;
     overflow-y: auto;
   }
-  .has-toc .toc-tab { left: max(1.5rem, calc(50vw - 36rem)); }
+  .has-toc .toc-tab {
+    position: fixed;
+    left: max(1.5rem, calc(50vw - 36rem));
+    top: 8rem;
+    margin: 0;
+    writing-mode: vertical-rl;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1625,13 +1634,21 @@ Expected: `root 200`, `missing 404`.
 ```bash
 git rm assets/js/app.js assets/js/content.js
 git rm -r assets/img
+rm -f assets/js/posts.js assets/js/research.js
+```
+
+`posts.js` and `research.js` are gitignored build leftovers from before Task 7, so git will not remove them, but the build copies `assets/` wholesale and would carry them into `_site/`. Nothing generates them any more, so also delete these two lines from `.gitignore`:
+
+```
+assets/js/posts.js
+assets/js/research.js
 ```
 
 - [ ] **Step 4: Rebuild and confirm nothing references the deleted files**
 
 ```bash
 /opt/homebrew/bin/node scripts/build-content.mjs
-grep -rn "app\.js\|content\.js\|assets/img" _site/ || echo "clean"
+grep -rn "app\.js\|content\.js\|posts\.js\|research\.js\|assets/img" _site/ || echo "clean"
 ```
 
 Expected: `clean`.
