@@ -45,7 +45,7 @@ export function notFoundPage({ site }) {
     bodyClass: 'is-index',
     content: '<main class="page"><h1 class="nf-h">Not found</h1>' +
       '<p class="nf-p">That page does not exist. <a class="link" href="/">Go home</a>.</p>' +
-      footer(site) + '</main>',
+      '</main>' + footer(site),
   });
 }
 
@@ -63,7 +63,7 @@ function row(item) {
   return '<li class="row">' +
     '<a class="row-link" href="' + esc(item.url) + '">' +
       '<span class="row-title">' + esc(item.title) + '</span>' +
-      (item.year ? '<span class="row-date">' + esc(item.year) + '</span>' : '') +
+      (item.year ? ' <span class="row-date">' + esc(item.year) + '</span>' : '') +
     '</a>' +
     (item.summary ? '<span class="row-sum">' + esc(item.summary) + '</span>' : '') +
   '</li>';
@@ -74,7 +74,7 @@ export function indexPage({ site, sections }) {
     .filter(s => s.items.length)
     .map(s => '<section class="sec">' +
       '<h2 class="sec-h">' + esc(s.heading) + '</h2>' +
-      '<ul class="rows">' + s.items.map(row).join('') + '</ul>' +
+      '<ul class="rows" role="list">' + s.items.map(row).join('') + '</ul>' +
     '</section>')
     .join('');
 
@@ -86,7 +86,7 @@ export function indexPage({ site, sections }) {
     bodyClass: 'is-index',
     extraHead: personJsonLd(site),
     content: '<main class="page"><h1 class="nm">' + esc(site.name) + '</h1>' + body +
-             footer(site) + '</main>',
+             '</main>' + footer(site),
   });
 }
 

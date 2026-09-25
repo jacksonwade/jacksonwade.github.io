@@ -26,13 +26,17 @@ fields rather than raw text. That is the point of using Obsidian here.
 | Field | Notes |
 |---|---|
 | `title` | Required. Quote it if it contains a colon. |
-| `date` | `2026-08-14`, `2026-08` or `2026`. Displayed as written out, sorted newest first. |
-| `summary` | One line. Shows on the index under the title, and as the italic subtitle on the page. |
+| `date` | `2026-08-14`, `2026-08` or `2026`. Write it in full; the page shows the year alone. Sorted newest first. |
+| `summary` | One line. Shows on the index under the title. It does NOT appear on the entry's own page, where it is used only as the meta description for search engines and link previews. |
 | `slug` | Optional. Defaults to the filename. |
 | `draft` | `true` keeps it off the site entirely. |
-| `links` | List of `Label \| https://url`, one per line. Shown under the subtitle. |
+| `links` | List of `Label \| https://url`, one per line. Shown under the date on the entry's page. |
 
 Research and posts use the same field names.
+
+An entry with no body renders its title and its date and nothing else. There is no
+fallback to the summary. That holds for research entries as well as posts: an
+unfinished piece is meant to look unfinished.
 
 ## What renders
 

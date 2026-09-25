@@ -165,3 +165,20 @@ test('the title tag pairs the post with the site name', () => {
   const html = detailPage({ site, item: post });
   assert.match(html, /<title>On My Mediocrity :: Kamai Jackson-Wade<\/title>/);
 });
+
+test('a row separates its title from its date so the accessible name reads', () => {
+  const html = indexPage({ site, sections: [{ heading: 'Writing', items: [post] }] });
+  assert.doesNotMatch(html, /On My Mediocrity<\/span><span class="row-date">/);
+  assert.match(html, /On My Mediocrity<\/span> <span class="row-date">/);
+});
+
+test('the index list keeps its list role when the bullets are custom', () => {
+  const html = indexPage({ site, sections: [{ heading: 'Writing', items: [post] }] });
+  assert.match(html, /<ul class="rows" role="list">/);
+});
+
+test('the index ending is a landmark, so it sits outside main', () => {
+  const html = indexPage({ site, sections: [{ heading: 'Writing', items: [post] }] });
+  assert.doesNotMatch(html, /<footer[\s\S]*<\/main>/);
+  assert.match(html, /<\/main><footer class="ftr">/);
+});

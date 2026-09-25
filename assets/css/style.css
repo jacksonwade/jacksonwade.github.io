@@ -1,14 +1,14 @@
 @font-face {
   font-family: 'Newsreader';
   src: url('/assets/fonts/Newsreader-Roman.woff2') format('woff2');
-  font-weight: 400 600;
+  font-weight: 400 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Newsreader';
   src: url('/assets/fonts/Newsreader-Italic.woff2') format('woff2');
-  font-weight: 400 600;
+  font-weight: 400 700;
   font-style: italic;
   font-display: swap;
 }
@@ -46,6 +46,7 @@ body::before {
   mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+@media (forced-colors: active) { body::before { display: none; } }
 img { max-width: 100%; height: auto; }
 a { color: inherit; text-decoration: none; }
 
@@ -55,7 +56,7 @@ a { color: inherit; text-decoration: none; }
   z-index: 1;
   max-width: 42rem;
   margin: 0 auto;
-  padding: clamp(3rem, 7vw, 5rem) 0 6rem;
+  padding: clamp(3rem, 7vw, 5rem) 0 0;
   font-size: 1.2rem;
   line-height: 1.7;
 }
@@ -79,7 +80,7 @@ a { color: inherit; text-decoration: none; }
 .row::before { content: '\2022'; position: absolute; left: 0; top: 0; color: var(--line); }
 .row:last-child { margin-bottom: 0; }
 .row-title { transition: color 160ms ease; }
-.row-link:hover .row-title { color: var(--accent); }
+.row-link:hover .row-title, .row-link:focus-visible .row-title { color: var(--accent); }
 .row-date { color: var(--muted); font-size: 0.9375rem; margin-left: 0.5rem; white-space: nowrap; }
 .row-sum {
   display: block;
@@ -110,6 +111,7 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.7;
 }
 .d-title {
+  overflow-wrap: break-word;
   font-size: 5rem;
   font-weight: 600;
   font-variation-settings: 'opsz' 60;
@@ -117,11 +119,12 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.012em;
   margin: 0 0 0.4rem;
 }
-.d-date { font-size: 1rem; color: var(--muted); margin: 0 0 3rem; }
-.d-links { margin: -2rem 0 3rem; line-height: 2.1; }
+.d-date { font-size: 1rem; color: var(--muted); margin: 0; }
+.d-links { margin: 1rem 0 0; line-height: 2.1; }
 .d-links a { display: block; width: fit-content; color: var(--muted); transition: color 160ms ease; }
-.d-links a:hover { color: var(--accent); }
+.d-links a:hover, .d-links a:focus-visible { color: var(--accent); }
 
+.d-body { margin-top: 3rem; }
 .d-body > :first-child { margin-top: 0; }
 .d-body p { margin: 0 0 1.35em; }
 .d-h {
@@ -141,11 +144,19 @@ a { color: inherit; text-decoration: none; }
   color: var(--muted);
 }
 .d-list, .d-ol { margin: 0 0 1.35em; padding: 0; list-style: none; }
-.d-list li, .d-ol li { position: relative; padding-left: 1.15rem; margin: 0 0 0.35rem; }
+.d-list li, .d-ol li { position: relative; margin: 0 0 0.35rem; }
+.d-list li { padding-left: 1.15rem; }
 .d-list li::before { content: '\2022'; position: absolute; left: 0; color: var(--line); }
 .d-ol { counter-reset: n; }
-.d-ol li { counter-increment: n; }
-.d-ol li::before { content: counter(n) '.'; position: absolute; left: 0; color: var(--line); }
+.d-ol li { counter-increment: n; padding-left: 2.5rem; }
+.d-ol li::before {
+  content: counter(n) '.';
+  position: absolute;
+  left: 0;
+  width: 2rem;
+  text-align: right;
+  color: var(--muted);
+}
 .d-hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0; }
 .d-code {
   font-family: var(--mono);
@@ -172,7 +183,7 @@ a { color: inherit; text-decoration: none; }
 .ftr { position: relative; z-index: 1; margin: 4.5rem auto 0; font-size: 1.0625rem;
        line-height: 2.1; color: var(--muted); }
 .ftr a { display: block; width: fit-content; color: var(--muted); transition: color 160ms ease; }
-.ftr a:hover { color: var(--accent); }
+.ftr a:hover, .ftr a:focus-visible { color: var(--accent); }
 .is-index .ftr { max-width: 42rem; }
 .is-detail .ftr { max-width: 48rem; margin-top: 3rem; padding-bottom: 2rem; }
 
@@ -180,6 +191,7 @@ a { color: inherit; text-decoration: none; }
 .nf-h { font-size: 2.125rem; font-weight: 600; font-variation-settings: 'opsz' 60; margin: 0 0 0.75rem; }
 .nf-p { color: var(--muted); margin: 0; }
 .nf-p .link { color: var(--accent); }
+.nf-p .link:hover { color: var(--body); }
 
 @media (max-width: 560px) {
   .d-title { font-size: 3rem; }
