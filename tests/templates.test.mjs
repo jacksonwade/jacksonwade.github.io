@@ -42,3 +42,45 @@ test('the not found page links home', () => {
   assert.match(html, /href="\/"/);
   assert.match(html, /<title>Not found/);
 });
+
+import { indexPage } from '../scripts/lib/templates.mjs';
+
+const post = {
+  title: 'On My Mediocrity', slug: 'mediocrity', url: '/blog/mediocrity',
+  date: '18 September 2026', iso: '2026-09-18', summary: 'A summary.', body: '',
+};
+
+test('the index renders a section per non-empty group', () => {
+  const html = indexPage({ site, sections: [
+    { heading: 'Writing', items: [post] },
+    { heading: 'Research', items: [] },
+  ] });
+  assert.match(html, />Writing</);
+  assert.doesNotMatch(html, />Research</);
+  assert.match(html, /href="\/blog\/mediocrity"/);
+  assert.match(html, /18 September 2026/);
+  assert.match(html, /A summary\./);
+});
+
+test('an index with nothing published has the name and no sections', () => {
+  const html = indexPage({ site, sections: [
+    { heading: 'Writing', items: [] },
+    { heading: 'Research', items: [] },
+  ] });
+  assert.match(html, /Kamai Jackson-Wade/);
+  assert.doesNotMatch(html, /class="sec-h"/);
+  assert.match(html, /<\/html>/);
+});
+
+test('the index carries the person structured data', () => {
+  const html = indexPage({ site, sections: [{ heading: 'Writing', items: [] }] });
+  assert.match(html, /"@type": "Person"/);
+});
+
+test('a title with markup characters is escaped in a row', () => {
+  const html = indexPage({ site, sections: [
+    { heading: 'Writing', items: [{ ...post, title: 'A & B <c>' }] },
+  ] });
+  assert.match(html, /A &amp; B &lt;c&gt;/);
+  assert.doesNotMatch(html, /<c>/);
+});

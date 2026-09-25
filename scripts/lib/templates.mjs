@@ -48,3 +48,43 @@ export function notFoundPage({ site }) {
       '<p class="nf-p">That page does not exist. <a class="link" href="/">Go home</a>.</p></main>',
   });
 }
+
+function personJsonLd(site) {
+  return '<script type="application/ld+json">' + JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: site.name,
+    url: site.url,
+    sameAs: [site.github],
+  }, null, 2) + '</script>\n';
+}
+
+function row(item) {
+  return '<li class="row">' +
+    '<a class="row-link" href="' + esc(item.url) + '">' +
+      '<span class="row-title">' + esc(item.title) + '</span>' +
+      (item.date ? '<span class="row-date">' + esc(item.date) + '</span>' : '') +
+    '</a>' +
+    (item.summary ? '<p class="row-sum">' + esc(item.summary) + '</p>' : '') +
+  '</li>';
+}
+
+export function indexPage({ site, sections }) {
+  const body = sections
+    .filter(s => s.items.length)
+    .map(s => '<section class="sec">' +
+      '<h2 class="sec-h">' + esc(s.heading) + '</h2>' +
+      '<ul class="rows">' + s.items.map(row).join('') + '</ul>' +
+    '</section>')
+    .join('');
+
+  return page({
+    site,
+    title: site.name,
+    description: site.description,
+    canonical: site.url + '/',
+    bodyClass: 'is-index',
+    extraHead: personJsonLd(site),
+    content: '<main class="wrap"><h1 class="name">' + esc(site.name) + '</h1>' + body + '</main>',
+  });
+}
