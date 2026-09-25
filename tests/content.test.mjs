@@ -73,3 +73,21 @@ test('readSection refuses a filename that slugifies to nothing', () => {
   writeFileSync(join(dir, '!!!.md'), '---\ntitle: A\n---\n');
   assert.throws(() => readSection({ dir, urlPrefix: 'blog' }), /slug/);
 });
+
+test('formatDate reports the year on its own', () => {
+  assert.equal(formatDate('2026-09-18').year, '2026');
+  assert.equal(formatDate('2026-09').year, '2026');
+  assert.equal(formatDate('2026').year, '2026');
+  assert.equal(formatDate('').year, '');
+  assert.equal(formatDate('not a date').year, '');
+});
+
+test('readSection puts the year on each item', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'yr-'));
+  writeFileSync(join(dir, 'a.md'), '---\ntitle: A\ndate: 2026-09-18\n---\nbody\n');
+  writeFileSync(join(dir, 'b.md'), '---\ntitle: B\n---\nbody\n');
+  const { items } = readSection({ dir, urlPrefix: 'blog' });
+  const byTitle = Object.fromEntries(items.map(i => [i.title, i.year]));
+  assert.equal(byTitle.A, '2026');
+  assert.equal(byTitle.B, '');
+});

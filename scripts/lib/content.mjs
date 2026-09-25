@@ -40,7 +40,7 @@ export function parseLinks(raw) {
 }
 
 export function formatDate(v) {
-  if (v === undefined || v === null || v === '') return { display: '', sort: 0, iso: '' };
+  if (v === undefined || v === null || v === '') return { display: '', sort: 0, iso: '', year: '' };
   const s = String(v).trim();
 
   const full = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -49,6 +49,7 @@ export function formatDate(v) {
       display: Number(full[3]) + ' ' + MONTHS[Number(full[2]) - 1] + ' ' + full[1],
       sort: Date.UTC(Number(full[1]), Number(full[2]) - 1, Number(full[3])),
       iso: full[1] + '-' + full[2] + '-' + full[3],
+      year: full[1],
     };
   }
   const month = s.match(/^(\d{4})-(\d{2})$/);
@@ -57,13 +58,14 @@ export function formatDate(v) {
       display: MONTHS[Number(month[2]) - 1] + ' ' + month[1],
       sort: Date.UTC(Number(month[1]), Number(month[2]) - 1, 1),
       iso: month[1] + '-' + month[2] + '-01',
+      year: month[1],
     };
   }
   const year = s.match(/^(\d{4})$/);
   if (year) {
-    return { display: year[1], sort: Date.UTC(Number(year[1]), 0, 1), iso: year[1] + '-01-01' };
+    return { display: year[1], sort: Date.UTC(Number(year[1]), 0, 1), iso: year[1] + '-01-01', year: year[1] };
   }
-  return { display: s, sort: 0, iso: '' };
+  return { display: s, sort: 0, iso: '', year: '' };
 }
 
 export function readSection({ dir, urlPrefix }) {
@@ -96,6 +98,7 @@ export function readSection({ dir, urlPrefix }) {
       url: '/' + urlPrefix + '/' + slug,
       date: when.display,
       iso: when.iso,
+      year: when.year,
       _sort: when.sort,
       body: normalizeBody(body, urlPrefix).trim(),
     };
