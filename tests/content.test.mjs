@@ -67,3 +67,9 @@ test('readSection sorts newest first', () => {
   const { items } = readSection({ dir, urlPrefix: 'blog' });
   assert.deepEqual(items.map(i => i.title), ['New', 'Old']);
 });
+
+test('readSection refuses a filename that slugifies to nothing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'empty-'));
+  writeFileSync(join(dir, '!!!.md'), '---\ntitle: A\n---\n');
+  assert.throws(() => readSection({ dir, urlPrefix: 'blog' }), /slug/);
+});

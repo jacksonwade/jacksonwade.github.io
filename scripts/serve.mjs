@@ -35,7 +35,9 @@ function rebuild() {
 
 rebuild();
 
-const WATCHED = [...SECTIONS.map(s => s.dir), 'assets', 'site.config.mjs'];
+// site.config.mjs is deliberately absent: the ES module registry caches it, so
+// rebuilding after an edit would still read the old values. It needs a restart.
+const WATCHED = [...SECTIONS.map(s => s.dir), 'assets'];
 
 let pending = null;
 for (const rel of WATCHED) {

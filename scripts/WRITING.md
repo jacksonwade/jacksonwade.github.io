@@ -46,8 +46,9 @@ Not supported: LaTeX math, tables, footnotes.
 
     node scripts/serve.mjs
 
-Builds, watches `posts/`, `research/`, `assets/` and `site.config.mjs`, and
-serves `_site/` on http://localhost:4000. Save in Obsidian, reload the browser.
+Builds, watches `posts/`, `research/` and `assets/`, and serves `_site/` on
+http://localhost:4000. Save in Obsidian, reload the browser. Editing
+`site.config.mjs` needs a server restart.
 
     node scripts/build-content.mjs
 

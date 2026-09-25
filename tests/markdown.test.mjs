@@ -41,3 +41,15 @@ test('headings that slugify the same get unique ids', () => {
 test('an empty body renders to empty html and no headings', () => {
   assert.deepEqual(renderBody(parseBody('')), { html: '', headings: [] });
 });
+
+test('a heading whose slug collides with an existing suffix still gets a unique id', () => {
+  const { headings } = renderBody(parseBody('## Why\n\n## Why\n\n## Why 2\n'));
+  const ids = headings.map(h => h.id);
+  assert.equal(new Set(ids).size, ids.length, 'ids must be unique, got ' + ids.join(', '));
+});
+
+test('inline markdown in a heading is stripped from its id and its contents label', () => {
+  const { html, headings } = renderBody(parseBody('## **Bold** and [a link](https://e.com)\n'));
+  assert.deepEqual(headings, [{ id: 'bold-and-a-link', text: 'Bold and a link' }]);
+  assert.match(html, /<strong>Bold<\/strong>/);
+});

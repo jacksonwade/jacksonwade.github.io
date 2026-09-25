@@ -73,8 +73,8 @@ a { color: inherit; }
 .d-body > :first-child { margin-top: 0; }
 .d-h { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em;
        margin: 2.75rem 0 1rem; scroll-margin-top: 2rem; }
-.d-anchor { margin-left: 0.4em; color: var(--line); text-decoration: none; opacity: 0; }
-.d-h:hover .d-anchor { opacity: 1; }
+.d-anchor { margin-left: 0.4em; color: var(--muted); text-decoration: none; opacity: 0; }
+.d-h:hover .d-anchor, .d-anchor:focus-visible { opacity: 1; }
 .d-quote { margin: 2rem 0; padding-left: 1.25rem; border-left: 2px solid var(--line);
            color: var(--muted); font-style: italic; }
 .d-list, .d-ol { padding-left: 1.25rem; }

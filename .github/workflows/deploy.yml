@@ -24,6 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - run: node --test tests/
       - run: node scripts/build-content.mjs
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3

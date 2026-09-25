@@ -95,16 +95,31 @@ function blockMarkup(b, headingId) {
   return '';
 }
 
+function plainText(s) {
+  return String(s)
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)\s]+\)/g, '$1')
+    .replace(/\*\*(\S(?:[^*]*\S)?)\*\*/g, '$1')
+    .replace(/(^|[^*\w])\*(\S(?:[^*]*\S)?)\*(?![*\w])/g, '$1$2')
+    .replace(/(^|[^_\w])_(\S(?:[^_]*\S)?)_(?![_\w])/g, '$1$2');
+}
+
 export function renderBody(blocks) {
-  const used = new Map();
+  const counts = new Map();
+  const taken = new Set();
   const headings = [];
 
+  // The suffix can itself be a real slug, so an id is only settled once it is
+  // not already taken: Why / Why / Why 2 must not all land on why-2.
   function headingId(text) {
-    const base = slugify(text) || 'section';
-    const n = (used.get(base) || 0) + 1;
-    used.set(base, n);
-    const id = n === 1 ? base : base + '-' + n;
-    headings.push({ id, text });
+    const plain = plainText(text);
+    const base = slugify(plain) || 'section';
+    let n = counts.get(base) || 0;
+    let id;
+    do { n += 1; id = n === 1 ? base : base + '-' + n; } while (taken.has(id));
+    counts.set(base, n);
+    taken.add(id);
+    headings.push({ id, text: plain });
     return id;
   }
 

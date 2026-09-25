@@ -85,6 +85,7 @@ export function readSection({ dir, urlPrefix }) {
     const slug = (typeof fm.slug === 'string' && fm.slug.trim())
       ? slugify(fm.slug)
       : slugify(basename(name, '.md'));
+    if (!slug) fail(rel, 1, 'the filename does not produce a usable slug; add a "slug" to the front matter');
     if (seen.has(slug)) fail(rel, 1, 'slug "' + slug + '" is already used by ' + seen.get(slug));
     seen.set(slug, rel);
 
