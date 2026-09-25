@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { build, SECTIONS } from './build-content.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const OUT = join(ROOT, '_site');
 const PORT = Number(process.env.PORT || 4000);
 
 const TYPES = {
@@ -28,17 +29,19 @@ function rebuild() {
   try {
     build();
   } catch (e) {
-    console.error('\nbuild-posts failed:\n  ' + e.message + '\n');
+    console.error('\nbuild-content failed:\n  ' + e.message + '\n');
   }
 }
 
 rebuild();
 
+const WATCHED = [...SECTIONS.map(s => s.dir), 'assets', 'site.config.mjs'];
+
 let pending = null;
-for (const section of SECTIONS) {
-  const dir = join(ROOT, section.dir);
-  if (!existsSync(dir)) continue;
-  watch(dir, () => {
+for (const rel of WATCHED) {
+  const target = join(ROOT, rel);
+  if (!existsSync(target)) continue;
+  watch(target, { recursive: statSync(target).isDirectory() }, () => {
     clearTimeout(pending);
     pending = setTimeout(rebuild, 120);
   });
@@ -47,18 +50,14 @@ for (const section of SECTIONS) {
 createServer((req, res) => {
   const url = decodeURIComponent((req.url || '/').split('?')[0]);
   const rel = normalize(url).replace(/^(\.\.[/\\])+/, '').replace(/^[/\\]+/, '');
-  let file = join(ROOT, rel);
+  let file = join(OUT, rel);
+  if (!file.startsWith(OUT)) { res.writeHead(403).end('forbidden'); return; }
 
-  if (!file.startsWith(ROOT)) { res.writeHead(403).end('forbidden'); return; }
   if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
+  if (!existsSync(file) && !extname(file) && existsSync(file + '.html')) file += '.html';
 
-  // Any path the router owns (/blog/some-post) has no file on disk; GitHub Pages
-  // answers those through 404.html, so mirror that here rather than 404-ing.
   let status = 200;
-  if (!existsSync(file)) {
-    status = extname(url) ? 404 : 200;
-    file = join(ROOT, extname(url) ? '404.html' : 'index.html');
-  }
+  if (!existsSync(file)) { status = 404; file = join(OUT, '404.html'); }
   if (!existsSync(file)) { res.writeHead(404).end('not found'); return; }
 
   res.writeHead(status, {
@@ -67,5 +66,5 @@ createServer((req, res) => {
   });
   res.end(readFileSync(file));
 }).listen(PORT, () => {
-  console.log('preview: http://localhost:' + PORT + '  (watching ' + SECTIONS.map(s => s.dir + '/').join(', ') + ')');
+  console.log('preview: http://localhost:' + PORT + '  (watching ' + WATCHED.join(', ') + ')');
 });
