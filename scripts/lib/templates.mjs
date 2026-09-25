@@ -1,14 +1,14 @@
 import { esc, parseBody, renderBody } from './markdown.mjs';
 
-export function footer(site) {
+export function footer(site, { home = false } = {}) {
   return '<footer class="ftr">' +
-    '<span class="ftr-mail">' + esc(site.email) + '</span>' +
-    '<span class="ftr-dot">&middot;</span>' +
-    '<a class="ftr-link" href="' + esc(site.github) + '" rel="me noopener">GitHub</a>' +
+    (home ? '<a href="/">' + esc(site.name) + '</a>' : '') +
+    '<span>' + esc(site.email) + '</span>' +
+    '<a href="' + esc(site.github) + '" rel="me noopener">GitHub</a>' +
   '</footer>';
 }
 
-export function page({ site, title, description, canonical, bodyClass = '', extraHead = '', content, script = false }) {
+export function page({ site, title, description, canonical, bodyClass = '', extraHead = '', content }) {
   return '<!DOCTYPE html>\n' +
 '<html lang="en">\n' +
 '<head>\n' +
@@ -26,14 +26,12 @@ export function page({ site, title, description, canonical, bodyClass = '', extr
 '<meta property="og:title" content="' + esc(title) + '">\n' +
 '<meta property="og:description" content="' + esc(description) + '">\n' +
 '<link rel="preload" href="/assets/fonts/Newsreader-Roman.woff2" as="font" type="font/woff2" crossorigin>\n' +
-'<style>html{background:#0d0d0f}</style>\n' +
+'<style>html{background:#12100e}</style>\n' +
 '<link rel="stylesheet" href="/assets/css/style.css">\n' +
 extraHead +
 '</head>\n' +
 '<body' + (bodyClass ? ' class="' + bodyClass + '"' : '') + '>\n' +
 content + '\n' +
-footer(site) + '\n' +
-(script ? '<script src="/assets/js/contents.js" defer></script>\n' : '') +
 '</body>\n' +
 '</html>\n';
 }
@@ -44,8 +42,10 @@ export function notFoundPage({ site }) {
     title: 'Not found :: ' + site.name,
     description: 'That page does not exist.',
     canonical: site.url + '/404',
-    content: '<main class="wrap"><h1 class="nf-h">Not found</h1>' +
-      '<p class="nf-p">That page does not exist. <a class="link" href="/">Go home</a>.</p></main>',
+    bodyClass: 'is-index',
+    content: '<main class="page"><h1 class="nf-h">Not found</h1>' +
+      '<p class="nf-p">That page does not exist. <a class="link" href="/">Go home</a>.</p>' +
+      footer(site) + '</main>',
   });
 }
 
@@ -63,9 +63,9 @@ function row(item) {
   return '<li class="row">' +
     '<a class="row-link" href="' + esc(item.url) + '">' +
       '<span class="row-title">' + esc(item.title) + '</span>' +
-      (item.date ? '<span class="row-date">' + esc(item.date) + '</span>' : '') +
+      (item.year ? '<span class="row-date">' + esc(item.year) + '</span>' : '') +
     '</a>' +
-    (item.summary ? '<p class="row-sum">' + esc(item.summary) + '</p>' : '') +
+    (item.summary ? '<span class="row-sum">' + esc(item.summary) + '</span>' : '') +
   '</li>';
 }
 
@@ -85,56 +85,36 @@ export function indexPage({ site, sections }) {
     canonical: site.url + '/',
     bodyClass: 'is-index',
     extraHead: personJsonLd(site),
-    content: '<main class="wrap"><h1 class="name">' + esc(site.name) + '</h1>' + body + '</main>',
+    content: '<main class="page"><h1 class="nm">' + esc(site.name) + '</h1>' + body +
+             footer(site) + '</main>',
   });
 }
 
-export function contentsBlock(headings) {
-  if (headings.length < 3) return '';
-  return '<nav class="toc" id="toc" aria-label="Contents">' +
-    '<div class="toc-head">' +
-      '<span class="toc-h">Contents</span>' +
-      '<button class="toc-close" type="button" aria-label="Hide contents" aria-expanded="true">&times;</button>' +
-    '</div>' +
-    '<ol class="toc-list">' + headings.map(h =>
-      '<li><a class="toc-link" href="#' + esc(h.id) + '">' + esc(h.text) + '</a></li>'
-    ).join('') + '</ol>' +
-  '</nav>' +
-  '<button class="toc-tab" id="toc-tab" type="button" aria-label="Show contents" hidden>Contents</button>';
-}
-
 export function detailPage({ site, item }) {
-  const { html: bodyHtml, headings } = renderBody(parseBody(item.body));
-  const toc = contentsBlock(headings);
+  const { html: bodyHtml } = renderBody(parseBody(item.body));
 
   const links = (item.links || []).map(l =>
-    '<a class="d-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
-      esc(l.label) + ' &nearr;</a>'
+    '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + '</a>'
   ).join('');
 
   const content =
-    '<header class="hdr"><a class="brand" href="/">' + esc(site.name) + '</a></header>' +
-    '<main class="wrap d-wrap">' +
-      '<article class="detail">' +
-        '<header class="d-head">' +
-          '<h1 class="d-title">' + esc(item.title) + '</h1>' +
-          (item.date ? '<p class="d-date">' + esc(item.date) + '</p>' : '') +
-          (item.summary ? '<p class="d-sub">' + esc(item.summary) + '</p>' : '') +
-          (links ? '<div class="d-btns">' + links + '</div>' : '') +
-        '</header>' +
-        toc +
+    '<header class="top"><a class="brand" href="/">' + esc(site.name) + '</a></header>' +
+    '<main class="wrap">' +
+      '<article>' +
+        '<h1 class="d-title">' + esc(item.title) + '</h1>' +
+        (item.year ? '<p class="d-date">' + esc(item.year) + '</p>' : '') +
+        (links ? '<div class="d-links">' + links + '</div>' : '') +
         '<div class="d-body">' + bodyHtml + '</div>' +
       '</article>' +
-      '<p class="d-top"><a class="link" href="#">Back to top</a></p>' +
-    '</main>';
+    '</main>' +
+    footer(site, { home: true });
 
   return page({
     site,
     title: item.title + ' :: ' + site.name,
     description: item.summary || item.title,
     canonical: site.url + item.url,
-    bodyClass: 'is-detail' + (toc ? ' has-toc' : ''),
+    bodyClass: 'is-detail',
     content,
-    script: Boolean(toc),
   });
 }
