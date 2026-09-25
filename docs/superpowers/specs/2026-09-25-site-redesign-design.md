@@ -1,5 +1,12 @@
 # kamai.uk redesign
 
+> **Partly superseded by `2026-09-25-site-look-v2-design.md`.**
+> The architecture below still stands: the static build into `_site/`, flat `.html` files,
+> `/blog/<slug>` URLs, the markdown subset, front matter, RSS, the sitemap and the deploy workflow.
+> Everything about how the site *looks* is out of date. In particular the Archivo typeface, the
+> 18px/1.8/36rem type, the `#0d0d0f` palette and the sticky contents block were all built and then
+> rejected. Read the v2 spec for the presentation.
+
 Date: 2026-09-25
 Status: awaiting review
 
