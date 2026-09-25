@@ -1,826 +1,142 @@
-/* =============================================================
-   kamai.uk  ·  minimal, light only
-   White background, black text. No dark mode.
-   ============================================================= */
-
-/* ── Fonts ──────────────────────────────────────────────── */
-/* IBM Plex Sans (grotesque) for headings/nav, Newsreader (serif) for body. */
 @font-face {
-  font-family: 'IBM Plex Sans';
+  font-family: 'Archivo';
+  src: url('/assets/fonts/Archivo-Regular.woff2') format('woff2');
+  font-weight: 400 700;
   font-style: normal;
-  font-weight: 400;
   font-display: swap;
-  src: url('/assets/fonts/IBMPlexSans-400.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'IBM Plex Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/assets/fonts/IBMPlexSans-500.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'IBM Plex Sans';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/assets/fonts/IBMPlexSans-700.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Newsreader';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/assets/fonts/Newsreader-Regular.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Newsreader';
+  font-family: 'Archivo';
+  src: url('/assets/fonts/Archivo-Italic.woff2') format('woff2');
+  font-weight: 400 700;
   font-style: italic;
-  font-weight: 400;
   font-display: swap;
-  src: url('/assets/fonts/Newsreader-Italic.woff2') format('woff2');
 }
 
-/* ── Tokens ─────────────────────────────────────────────── */
-/* Light only: white background, black text. */
 :root {
-  --bg:      #ffffff;
-  --fg:      #111111;
-  --muted:   #6b6b6b;
-  --line:    #e4e4e4;
-  --sans:    'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --serif:   'Newsreader', Georgia, 'Times New Roman', serif;
-  --mono:    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  --code-bg: #f4f4f5;
-  --maxw:    52rem;
-  --pad:     clamp(1.5rem, 6vw, 4rem);
-  --radius:  14px;                     /* rounded image corners */
-}
-
-/* Dark reading theme — only applied to detail/reading pages via
-   <html data-theme="dark"> (set by the router). The rest of the site is light. */
-:root[data-theme="dark"] {
-  --bg:    #0d0d0f;
-  --fg:    #ffffff;
-  --muted: #b7b7b7;
-  --line:  #26262a;
-  --body:  #eaeaea;                    /* near-white body text (not pure white) */
+  --bg:      #0d0d0f;
+  --body:    #eaeaea;
+  --muted:   #b7b7b7;
+  --line:    #26262a;
   --code-bg: #17171a;
+  --sans:    'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --measure: 36rem;
+  --pad:     clamp(1.25rem, 5vw, 3rem);
 }
-:root { --body: var(--fg); }          /* light theme: body text = fg */
 
-/* ── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html {
-  -webkit-text-size-adjust: 100%;
-  background: var(--bg);              /* paint the overscroll area (iOS bounce) */
-  overscroll-behavior-y: none;        /* stop rubber-band past the footer */
-}
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--fg);
-  font-family: var(--serif);
-  font-size: 1.125rem;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  overflow-x: hidden;                 /* never allow horizontal scroll */
-  overscroll-behavior-y: none;
-  transition: background .2s ease, color .2s ease;
+  color: var(--body);
+  font-family: var(--sans);
+  font-size: 1.15rem;
+  line-height: 1.8;
+  padding: 0 var(--pad);
 }
+img { max-width: 100%; height: auto; }
+[hidden] { display: none !important; }
 a { color: inherit; }
-img { max-width: 100%; display: block; }
 
-/* ── Layout shell ───────────────────────────────────────── */
-/* Same container as header/footer so content left-aligns with the brand.
-   Readable line-length is capped per-block (hero, prose) below. */
-.wrap {
-  width: 100%;
-  max-width: 76rem;
-  margin: 0 auto;
-  padding-inline: clamp(1.5rem, 6vw, 4rem);   /* horizontal only; keep main's vertical padding */
-}
-/* Cap readable width of page content while keeping the left edge aligned. */
-.page > section { max-width: min(var(--maxw), 100%); }
-/* The research page uses the full width so entry rows have room for images. */
-.page > section.research-page { max-width: min(72rem, 100%); }
+.wrap { max-width: var(--measure); margin: 0 auto; padding: clamp(4rem, 10vw, 7rem) 0 5rem; }
 
-/* ── Header ─────────────────────────────────────────────── */
-/* The header bar spans wider than the reading column and is inset from the
-   page edges, so brand sits hard-left and nav hard-right with air between. */
-.hdr {
-  padding: clamp(2rem, 4vw, 2.75rem) 0 0;
-}
-.hdr-i {
-  max-width: 76rem;
-  margin: 0 auto;
-  padding: 0 clamp(1.5rem, 6vw, 4rem);
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2rem;
-}
-.brand {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: 1.125rem;
-  letter-spacing: -0.01em;
-  text-decoration: none;
-  margin-right: auto;   /* anchor to the left, push nav to the right */
-}
-.nav {
-  display: flex;
-  gap: clamp(1.25rem, 3vw, 2.25rem);
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: 0.9375rem;
-}
-.nl {
-  text-decoration: none;
-  color: var(--muted);
-  padding-bottom: 2px;
-  border-bottom: 1.5px solid transparent;
-  transition: color .15s ease, border-color .15s ease;
-}
-.nl:hover { color: var(--fg); }
-.nl.active {
-  color: var(--fg);
-  border-bottom-color: var(--fg);
-}
-/* Theme toggle — only visible on reading (detail) pages. */
-.theme-toggle {
-  /* Always occupies its slot so the nav layout is identical on every page
-     (no reflow/shift). On non-reading pages it is simply hidden + inert; the
-     reading-page rule below makes it visible again. */
-  display: inline-flex;
-  visibility: hidden;
-  pointer-events: none;
-  align-items: center;
-  justify-content: center;
-  width: 32px; height: 32px;
-  padding: 0;
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--fg);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  transition: border-color .15s ease, opacity .15s ease;
-  opacity: 0.85;
-}
-.theme-toggle:hover { opacity: 1; }
-:root[data-reading="1"] .theme-toggle { visibility: visible; pointer-events: auto; }
+.name { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 3.5rem; }
 
-/* ── Main ───────────────────────────────────────────────── */
-/* Clear gap below the header before content begins (anthropic-like).
-   Sub-pages (about/blog/research/contact) start their heading well down
-   the page; the home hero is vertically centered instead (see is-home). */
-main {
-  flex: 1 0 auto;
-  padding: clamp(5rem, 12vw, 9rem) 0 clamp(4rem, 9vw, 7rem);
-}
+.sec { margin: 0 0 3.5rem; border-top: 1px solid var(--line); padding-top: 1.75rem; }
+.sec-h { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+         text-transform: uppercase; color: var(--muted); margin: 0 0 1.5rem; }
+.rows { list-style: none; margin: 0; padding: 0; }
+.row { margin: 0 0 1.75rem; }
+.row-link { display: flex; justify-content: space-between; align-items: baseline;
+            gap: 1.5rem; text-decoration: none; }
+.row-title { font-size: 1.15rem; font-weight: 500; line-height: 1.35;
+             text-decoration: underline; text-decoration-color: var(--line);
+             text-underline-offset: 0.25em; }
+.row-link:hover .row-title { text-decoration-color: var(--body); }
+.row-date { font-size: 0.8125rem; color: var(--muted); white-space: nowrap; flex: none; }
+.row-sum { font-size: 0.9375rem; line-height: 1.6; color: var(--muted); margin: 0.4rem 0 0; }
 
-/* Gentle fade + rise on load and between pages. */
-.page { animation: fade .55s cubic-bezier(.22, .61, .36, 1) both; }
-@keyframes fade {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: none; }
-}
+.hdr { max-width: var(--measure); margin: 0 auto; padding: 2rem 0 0; }
+.brand { font-size: 0.875rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+.brand:hover { color: var(--body); }
 
-/* Scroll-reveal: elements with .reveal fade+rise when they enter the viewport.
-   JS adds .is-in once visible. Falls back to visible if JS is off. */
-.reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
-.reveal.is-in { opacity: 1; transform: none; }
-.no-js .reveal, .reveal.is-in { opacity: 1; transform: none; }
+.d-head { margin: 0 0 3rem; }
+.d-title { font-size: 2.125rem; font-weight: 600; line-height: 1.15;
+           letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+.d-date { font-size: 0.8125rem; color: var(--muted); margin: 0; }
+.d-sub { font-style: italic; color: var(--muted); margin: 1rem 0 0; }
+.d-btns { margin: 1.25rem 0 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+.d-btn { font-size: 0.875rem; color: var(--muted); }
 
-@media (prefers-reduced-motion: reduce) {
-  .page { animation: none; }
-  .reveal { opacity: 1; transform: none; transition: none; }
-  html { scroll-behavior: auto !important; }
-}
+.d-body > :first-child { margin-top: 0; }
+.d-h { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em;
+       margin: 2.75rem 0 1rem; scroll-margin-top: 2rem; }
+.d-anchor { margin-left: 0.4em; color: var(--line); text-decoration: none; opacity: 0; }
+.d-h:hover .d-anchor { opacity: 1; }
+.d-quote { margin: 2rem 0; padding-left: 1.25rem; border-left: 2px solid var(--line);
+           color: var(--muted); font-style: italic; }
+.d-list, .d-ol { padding-left: 1.25rem; }
+.d-hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0; }
+.d-code { font-family: var(--mono); font-size: 0.875em; background: var(--code-bg);
+          padding: 0.15em 0.35em; border-radius: 3px; }
+.d-pre { background: var(--code-bg); padding: 1rem 1.25rem; border-radius: 6px;
+         overflow-x: auto; font-size: 0.875rem; line-height: 1.6; }
+.d-pre code { font-family: var(--mono); }
+.d-fig { margin: 2.5rem 0; }
+.d-fig figcaption { font-size: 0.8125rem; color: var(--muted); margin-top: 0.6rem; }
+.d-top { margin: 4rem 0 0; font-size: 0.875rem; }
+.link { color: var(--muted); }
+.link:hover { color: var(--body); }
 
-/* ── Hero (home) ────────────────────────────────────────── */
-/* On home, the hero fills the first screen (centered); "Selected work"
-   flows below it so scrolling reveals the featured research. */
-main.is-home { padding-top: 0; padding-bottom: 0; }
-main.is-home .hero {
-  display: flex;
-  align-items: center;
-  min-height: calc(100vh - 12rem);
-}
-.hero {
-  max-width: 38rem;
-}
-/* Featured "Selected work" block under the hero on home. */
-.featured {
-  max-width: min(72rem, 100%);
-  padding-bottom: clamp(4rem, 9vw, 7rem);
-}
-.sec-h {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: clamp(1.4rem, 3vw, 1.9rem);
-  letter-spacing: -0.02em;
-  margin: 0 0 2rem;
-}
-.more-link {
-  display: inline-block;
-  margin-top: 2rem;
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: 0.9375rem;
-  color: var(--fg);
-  text-underline-offset: 4px;
-}
+.toc { margin: 0 0 2.5rem; border-left: 2px solid var(--line); padding-left: 1rem; }
+.toc-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.toc-h { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em;
+         text-transform: uppercase; color: var(--muted); }
+.toc-close { background: none; border: 0; color: var(--muted); cursor: pointer;
+             font-size: 1.1rem; line-height: 1; padding: 0.25rem; }
+.toc-close:hover { color: var(--body); }
+.toc-list { list-style: none; margin: 0.75rem 0 0; padding: 0;
+            font-size: 0.875rem; line-height: 1.5; }
+.toc-list li { margin: 0 0 0.5rem; }
+.toc-link { color: var(--muted); text-decoration: none; }
+.toc-link:hover, .toc-link.is-current { color: var(--body); }
+.toc-tab { display: block; margin: 0 0 2rem; background: none; border: 0; padding: 0;
+           color: var(--muted); cursor: pointer; font-family: var(--sans);
+           font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em;
+           text-transform: uppercase; }
+.toc-tab:hover { color: var(--body); }
 
-/* ── Landing (About-as-home): short blurb → News → Latest publications ── */
-/* Override the old centered-hero home: the landing is a normal top-aligned page. */
-main.is-home { padding-top: clamp(4rem, 10vw, 7rem); padding-bottom: clamp(4rem, 9vw, 7rem); }
-.landing { max-width: min(52rem, 100%); }
-.landing-blurb {
-  margin: 0 0 clamp(2.5rem, 6vw, 4rem);
-  max-width: 44ch;
-}
-.landing-blurb p {
-  font-family: var(--serif);
-  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-  line-height: 1.5;
-  color: var(--fg);
-  margin: 0 0 1rem;
-}
-.landing-blurb p:last-child { margin-bottom: 0; }
-.landing-sec { margin-bottom: clamp(2.5rem, 6vw, 4rem); }
-.landing-sec:last-child { margin-bottom: 0; }
-.newslist { display: flex; flex-direction: column; gap: 1.1rem; }
-.news-row { display: grid; grid-template-columns: 7rem 1fr; gap: 1.5rem; align-items: baseline; }
-.news-date { font-family: var(--sans); font-weight: 600; font-size: 0.9rem; color: var(--fg); }
-.news-text { font-family: var(--sans); font-size: 1rem; line-height: 1.55; color: var(--muted); }
-@media (max-width: 560px) {
-  .news-row { grid-template-columns: 1fr; gap: 0.25rem; }
-}
-.hero h1 {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: clamp(1.9rem, 7vw, 3.75rem);
-  line-height: 1.12;
-  overflow-wrap: break-word;
-  letter-spacing: -0.025em;
-  margin: 0;
-  text-wrap: balance;
-  /* .hero is a flex container (for vertical centering); without this the h1
-     flex item keeps min-width:auto and refuses to shrink below its widest
-     word, overflowing narrow screens. Let it shrink to the column. */
-  width: 100%;
-  min-width: 0;
-}
-/* the linked word inside the hero line */
-.hero-link {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: clamp(2px, 0.4vw, 4px);
-  text-underline-offset: clamp(3px, 0.7vw, 7px);
-  transition: opacity .15s ease;
-}
-.hero-link:hover { opacity: 0.6; }
+.ftr { max-width: var(--measure); margin: 0 auto; padding: 2.5rem 0 4rem;
+       border-top: 1px solid var(--line); font-size: 0.8125rem; color: var(--muted); }
+.ftr-dot { margin: 0 0.5rem; }
+.ftr-link { color: var(--muted); }
+.ftr-link:hover { color: var(--body); }
 
-/* Word-by-word entrance on first load: each word fades + rises, staggered
-   via inline animation-delay so the whole line lands within ~0.5s. */
-.hero-word {
-  display: inline-block;
-  max-width: 100%;                 /* never exceed the line; multi-word links wrap inside */
-  overflow-wrap: break-word;
-  opacity: 0;
-  transform: translateY(0.5em);
-  animation: heroWord .32s cubic-bezier(.22, .61, .36, 1) both;
-}
-@keyframes heroWord {
-  to { opacity: 1; transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-word { opacity: 1; transform: none; animation: none; }
-}
+.nf-h { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.75rem; }
+.nf-p { color: var(--muted); margin: 0; }
 
-/* ── Generic prose / page headings ──────────────────────── */
-.page h2 {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  margin: 0 0 1.75rem;
-}
-.page p { margin: 0 0 1.25rem; }
-.page p:last-child { margin-bottom: 0; }
-.lead { font-size: 1.25rem; }
-
-.link {
-  color: inherit;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-.link:hover { text-decoration-thickness: 2px; }
-
-/* ── About page (bigger text + image beside it) ─────────── */
-.about-page { max-width: min(72rem, 100%); }
-.about-wrap {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: clamp(2rem, 6vw, 5rem);
-  align-items: start;
-}
-.about-body p {
-  font-size: clamp(1.3rem, 2.4vw, 1.65rem);   /* larger, as requested */
-  line-height: 1.5;
-  margin: 0 0 1.4rem;
-}
-.about-body p:last-child { margin-bottom: 0; }
-.about-art img {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-@media (max-width: 44rem) {
-  .about-wrap { grid-template-columns: 1fr; }
-  .about-art { order: -1; max-width: 22rem; }   /* image on top when stacked */
-}
-
-/* ── Contact page (image-dominant split, curtain-down reveal) ─── */
-/* Contact is near-full-bleed: keep a small gap below the header so the brand
-   breathes, then let the split fill the remaining height. */
-main.is-contact, main.is-about { padding: clamp(1.5rem, 4vw, 3rem) 0 0; display: flex; }
-main.is-contact > .page, main.is-about > .page { flex: 1; display: flex; }
-/* About reuses the Contact split but gives the bio a bit more room than the
-   image (Contact is image-dominant; About has more text to hold). */
-.about-split { grid-template-columns: 1fr 1fr; }
-.about-split .about-body p {
-  font-size: clamp(1.15rem, 1.9vw, 1.45rem);
-  line-height: 1.5;
-  margin: 0 0 1.1rem;
-}
-.about-split .about-body p:last-child { margin-bottom: 0; }
-.contact-split {
-  max-width: none !important;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);      /* full-bleed regardless of container */
-  flex: 1;
-  min-height: 32rem;
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  grid-template-rows: minmax(0, 1fr);   /* single row fills full height so the image covers it */
-  align-items: stretch;
-}
-.contact-art {
-  overflow: hidden;                    /* clips the curtain reveal */
-}
-.contact-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  /* Slow curtain-down: image reveals top -> bottom on load. */
-  animation: curtainDown 1.6s cubic-bezier(.33, .1, .25, 1) both;
-}
-@keyframes curtainDown {
-  from { clip-path: inset(0 0 100% 0); }
-  to   { clip-path: inset(0 0 0 0); }
-}
-.contact-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: clamp(2.5rem, 5vw, 5rem);
-  gap: 0;
-}
-.contact-panel h2 {
-  font-family: var(--sans);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  line-height: 1.05;
-  margin: 0 0 1.25rem;
-}
-.contact-intro {
-  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
-  line-height: 1.5;
-  margin: 0 0 1.75rem;
-  /* text eases in shortly after the curtain starts */
-  animation: fadeUp .7s ease .4s both;
-}
-/* Email shown as plain text (not a link): monospace reads as a fill-in pattern
-   and stays distinct from the serif prose and the sans GitHub link. */
-.contact-email {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 1.05rem;
-  letter-spacing: 0.01em;
-  color: var(--fg);
-  margin: 0 0 1.6rem;
-  animation: fadeUp .7s ease .5s both;
-}
-.contact-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  animation: fadeUp .7s ease .55s both;
-}
-.contact-link {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.01em;
-  text-decoration: none;
-  width: fit-content;
-}
-.contact-link:hover { text-decoration: underline; text-underline-offset: 4px; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-
-@media (max-width: 44rem) {
-  .contact-split {
-    grid-template-columns: 1fr;
-    min-height: 0;
+@media (min-width: 1100px) {
+  .has-toc .toc {
+    position: fixed;
+    left: max(1.5rem, calc(50vw - 36rem));
+    top: 8rem;
+    width: 12rem;
+    margin: 0;
+    max-height: 70vh;
+    overflow-y: auto;
   }
-  .contact-art { height: 60vh; order: -1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .contact-art img, .contact-intro, .contact-links { animation: none; }
-}
-
-/* ── Home: recent writing + post list ───────────────────── */
-.home-writing { max-width: min(72rem, 100%); padding-bottom: clamp(4rem, 9vw, 7rem); }
-.postlist { display: flex; flex-direction: column; }
-.post {
-  padding: 1.6rem 0;
-  border-top: 1px solid var(--line);
-}
-.post:last-child { border-bottom: 1px solid var(--line); }
-.post-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-}
-.post-title {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: clamp(1.15rem, 2vw, 1.4rem);
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-  text-decoration: none;
-  color: inherit;
-}
-a.post-title:hover { text-decoration: underline; text-underline-offset: 4px; }
-.post-date {
-  font-family: var(--sans);
-  font-size: 0.875rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.post-sum {
-  margin: 0.5rem 0 0;
-  color: var(--muted);
-  font-size: 1.0625rem;
-  line-height: 1.55;
+  .has-toc .toc-tab {
+    position: fixed;
+    left: max(1.5rem, calc(50vw - 36rem));
+    top: 8rem;
+    margin: 0;
+    writing-mode: vertical-rl;
+  }
 }
 
-/* ── List of entries (research / blog) ──────────────────── */
-.list { margin: 0; }
-.item {
-  padding: 1.5rem 0;
-  border-top: 1px solid var(--line);
-}
-.item:last-child { border-bottom: 1px solid var(--line); }
-.item-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-}
-.item-title {
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: 1.1875rem;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  margin: 0;
-}
-a.item-title { text-decoration: none; }
-a.item-title:hover { text-decoration: underline; text-underline-offset: 3px; }
-.item-meta {
-  font-family: var(--sans);
-  font-size: 0.875rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.item-desc {
-  margin: 0.6rem 0 0;
-  color: var(--muted);
-  font-size: 1.0625rem;
-}
-
-/* ── Research entries (image left, text right) ──────────── */
-.entries {
-  display: flex;
-  flex-direction: column;
-}
-.entry {
-  padding: 2.5rem 0;
-  border-top: 1px solid var(--line);
-}
-.entry:last-child { border-bottom: 1px solid var(--line); }
-/* Rows with an image become two columns; text-only rows stay single. */
-.entry.has-media {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(1.5rem, 4vw, 3rem);
-  align-items: start;
-}
-.entry-media {
-  display: block;
-  overflow: hidden;
-  border-radius: var(--radius);
-}
-.entry-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  aspect-ratio: 4 / 3;
-  transition: transform .4s ease;
-}
-.entry-media:hover img { transform: scale(1.02); }
-.entry-head {
-  display: flex;
-  gap: 1rem;
-  align-items: baseline;
-  margin-bottom: 0.9rem;
-  font-family: var(--sans);
-  font-size: 0.875rem;
-}
-.entry-cat  { font-weight: 500; color: var(--fg); }
-.entry-date { color: var(--muted); }
-.entry-title {
-  display: block;
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin-bottom: 0.6rem;
-}
-a.entry-title { text-decoration: none; color: inherit; }
-a.entry-title:hover { text-decoration: underline; text-underline-offset: 4px; }
-.entry-desc {
-  margin: 0;
-  color: var(--muted);
-  font-size: 1.0625rem;
-  line-height: 1.55;
-}
-
-/* Research-page intro: the research-direction statement above the (future) list. */
-.research-intro {
-  max-width: 40rem;
-  margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
-}
-.research-intro p {
-  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
-  line-height: 1.55;
-  margin: 0 0 1.2rem;
-}
-.research-intro p:last-child { margin-bottom: 0; }
-
-/* Empty-state note */
-.note {
-  color: var(--muted);
-  font-style: italic;
-}
-
-/* ── Detail page (single paper / post) ──────────────────── */
-/* Reading page: the whole article is centered as one column, unlike the
-   left-aligned list/section pages. Comfortable long-form measure. */
-.detail { max-width: min(44rem, 100%); margin: 0 auto; }
-/* Calm dark hero: centered kicker + medium title + italic subtitle, no image. */
-.d-cover { text-align: center; margin: clamp(1rem, 4vw, 2.5rem) 0 clamp(2.5rem, 6vw, 4rem); }
-.d-meta {
-  display: flex; gap: 1rem; justify-content: center; align-items: center;
-  font-family: var(--sans); font-size: 0.9rem; letter-spacing: 0.01em;
-  color: var(--muted); margin-bottom: 1.1rem;
-}
-.d-title {
-  font-family: var(--sans);
-  font-weight: 500;                   /* medium, not bold */
-  font-size: clamp(1.9rem, 4.4vw, 3rem);
-  letter-spacing: -0.022em;
-  line-height: 1.08;
-  margin: 0 auto;
-  max-width: 20ch;
-  overflow-wrap: break-word;
-}
-/* Scoped under .d-cover to beat the base `.page p { margin: 0 ... }` rule,
-   which would otherwise reset the auto side-margins and left-align the subtitle. */
-.d-cover .d-sub {
-  font-family: var(--serif);
-  font-size: 1.2rem;
-  color: var(--muted);
-  max-width: 40ch;
-  margin: 1.1rem auto 0;
-}
-.d-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  justify-content: center;
-  margin-top: 1.8rem;
-}
-.d-btn {
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: 0.9375rem;
-  text-decoration: none;
-  color: var(--bg);
-  background: var(--fg);
-  padding: 0.6rem 1.3rem;
-  border-radius: 999px;
-  transition: opacity .15s ease, transform .15s ease;
-}
-.d-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-/* Body: serif prose, near-white in dark mode, comfortable measure. */
-.d-body { font-size: 1.1875rem; line-height: 1.7; color: var(--body); }
-.d-body > * { max-width: 40rem; margin-inline: auto; }
-.d-body p { margin: 0 0 1.4rem; }
-.d-h {
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: 1.3rem;
-  letter-spacing: -0.01em;
-  color: var(--fg);                   /* headings stay full-strength (pure white in dark) */
-  margin: 2.5rem 0 1rem;
-}
-.d-date { font-weight: 500; color: var(--fg); }
-.d-tag  { color: var(--muted); }
-.d-body a { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
-.d-quote {
-  margin: 2rem 0;
-  padding-left: 1.25rem;
-  border-left: 3px solid var(--line);
-  font-style: italic;
-  color: var(--muted);
-}
-.d-list { margin: 0 0 1.4rem; padding-left: 1.25rem; }
-.d-list li { margin: 0 0 0.5rem; }
-.d-ol { margin: 0 0 1.4rem; padding-left: 1.4rem; }
-.d-ol li { margin: 0 0 0.5rem; }
-.d-body strong { font-weight: 600; color: var(--fg); }
-.d-body em { font-style: italic; }
-.d-hr {
-  border: 0;
-  border-top: 1px solid var(--line);
-  width: 4rem;
-  margin: 2.75rem auto;
-}
-.d-code {
-  font-family: var(--mono);
-  font-size: 0.86em;
-  background: var(--code-bg);
-  border-radius: 4px;
-  padding: 0.1em 0.35em;
-}
-.d-pre {
-  font-family: var(--mono);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  background: var(--code-bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1rem 1.1rem;
-  margin: 2rem 0;
-  overflow-x: auto;
-}
-.d-pre code { font: inherit; background: none; padding: 0; }
-.d-fig { margin: 2rem 0; }
-.d-fig img { width: 100%; border-radius: var(--radius); display: block; }
-.d-fig figcaption {
-  font-family: var(--sans);
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-top: 0.6rem;
-}
-
-/* ── Contact ────────────────────────────────────────────── */
-.contact-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.contact-list li {
-  padding: 1rem 0;
-  border-top: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: baseline;
-}
-.contact-list li:last-child { border-bottom: 1px solid var(--line); }
-.contact-k {
-  font-family: var(--sans);
-  font-size: 0.875rem;
-  color: var(--muted);
-}
-.contact-v {
-  font-family: var(--sans);
-  font-weight: 500;
-  text-decoration: none;
-}
-a.contact-v:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-/* ── Footer (dark band, grouped columns) ────────────────── */
-.ftr {
-  flex-shrink: 0;
-  background: #0d0d0d;
-  color: #cfcfcf;
-  font-family: var(--sans);
-  padding: clamp(3.5rem, 7vw, 5.5rem) 0 clamp(2rem, 4vw, 3rem);
-  margin-top: clamp(4rem, 9vw, 7rem);
-}
-/* Full-bleed image pages (Contact, About) butt straight against the footer:
-   remove the top margin that would otherwise leave a white band below the image. */
-main.is-contact + .ftr,
-main.is-about + .ftr { margin-top: 0; }
-.ftr-i {
-  max-width: 76rem;
-  margin: 0 auto;
-  padding: 0 clamp(1.5rem, 6vw, 4rem);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: clamp(2rem, 6vw, 5rem);
-  align-items: start;
-}
-.ftr-brand {
-  font-weight: 700;
-  font-size: 1.0625rem;
-  letter-spacing: -0.01em;
-  color: #fff;
-  text-decoration: none;
-}
-.ftr-cols {
-  display: flex;
-  gap: clamp(3rem, 8vw, 6rem);
-}
-.ftr-h {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 1.1rem;
-}
-.ftr-col { display: flex; flex-direction: column; gap: 0.7rem; }
-.ftr-link {
-  font-size: 0.9375rem;
-  color: #9a9a9a;
-  text-decoration: none;
-  width: fit-content;
-  transition: color .15s ease;
-}
-.ftr-link:hover { color: #fff; }
-.ftr-base {
-  max-width: 76rem;
-  margin: clamp(3rem, 7vw, 5rem) auto 0;
-  padding: 0 clamp(1.5rem, 6vw, 4rem);
-  font-size: 0.8125rem;
-  color: #6f6f6f;
-}
-@media (max-width: 40rem) {
-  .ftr-i { grid-template-columns: 1fr; gap: 2.5rem; }
-  .ftr-cols { gap: 3rem; }
-}
-
-/* ── Mobile / tablet (single column, no overflow) ───────── */
-@media (max-width: 48rem) {
-  /* Every entry/about/contact grid collapses to one column.
-     minmax(0,1fr) lets tracks shrink below content (prevents overflow). */
-  .entry.has-media,
-  .about-wrap,
-  .contact-split { grid-template-columns: minmax(0, 1fr) !important; }
-  /* Nothing inside the entry list may exceed the column width. */
-  .entries, .entry, .entry * { max-width: 100%; min-width: 0; }
-
-  /* Images that were beside text now stack on top, sensible height. */
-  .about-art { order: -1; max-width: 100%; }
-  .about-art img { aspect-ratio: 4 / 3; }
-  .contact-art { height: 56vh; }
-  .contact-split { min-height: 0; grid-template-rows: none !important; }   /* stack normally on mobile */
-
-  /* Research/blog entry image back to a normal banner ratio when stacked. */
-  .entry-media img { aspect-ratio: 16 / 10; }
-}
-
-/* ── Small phones ───────────────────────────────────────── */
-@media (max-width: 34rem) {
-  .hdr-i { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
-  .nav { flex-wrap: wrap; gap: 1rem 1.25rem; }
-  .item-head { flex-direction: column; gap: 0.25rem; }
-  .hero h1 { font-size: clamp(1.75rem, 8.5vw, 2.6rem); }
-  .footer, .ftr-cols { gap: 2rem; }
+@media (max-width: 480px) {
+  .row-link { flex-direction: column; gap: 0.2rem; }
+  .row-date { order: -1; }
 }
