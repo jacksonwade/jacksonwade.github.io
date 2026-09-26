@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- This is a single-page app. Only "/" returns HTTP 200; the other
-     routes (/about, /blog, /research, /contact) are rendered client-side
-     and return 404 to crawlers, so they are intentionally not listed. -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://kamai.uk/</loc><lastmod>2026-07-26</lastmod><priority>1.0</priority></url>
-</urlset>

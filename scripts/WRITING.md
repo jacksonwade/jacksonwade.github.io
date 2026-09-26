@@ -5,9 +5,9 @@ Both sections are markdown files, one file per entry, same format:
     posts/on-mediocrity.md      ->  kamai.uk/blog/on-mediocrity
     research/titan.md           ->  kamai.uk/research/titan
 
-Nothing in `assets/js/` is written by hand. `scripts/build-content.mjs` reads
-`posts/*.md` and `research/*.md` and generates `assets/js/posts.js` and
-`assets/js/research.js`.
+Nothing in `_site/` is written by hand. `scripts/build-content.mjs` reads
+`posts/*.md` and `research/*.md` and writes the whole site into `_site/`, which
+is gitignored and rebuilt on every deploy.
 
 ## Obsidian, one-time setup
 
@@ -26,17 +26,17 @@ fields rather than raw text. That is the point of using Obsidian here.
 | Field | Notes |
 |---|---|
 | `title` | Required. Quote it if it contains a colon. |
-| `date` | `2026-08-14`, `2026-08` or `2026`. Displayed as written out, sorted newest first. |
-| `tag` | Short label, shown next to the title. `Essay`, `ML`, `Q-Fin`. |
-| `summary` | One line. Shows on the list page and as the italic subtitle. |
+| `date` | `2026-08-14`, `2026-08` or `2026`. Write it in full; the page shows the year alone. Sorted newest first. |
+| `summary` | One line. Shows on the index under the title. It does NOT appear on the entry's own page, where it is used only as the meta description for search engines and link previews. |
 | `slug` | Optional. Defaults to the filename. |
-| `image` | Thumbnail on the list page. A bare filename means `assets/img/`. |
 | `draft` | `true` keeps it off the site entirely. |
-| `featured` | A number. Featured entries lead the page, lowest number first, ahead of the date order. Leave it blank for normal newest-first placement. |
-| `links` | List of `Label \| https://url`, one per line. Becomes buttons. |
+| `links` | List of `Label \| https://url`, one per line. Shown under the date on the entry's page. |
 
-Research and posts use the same field names. The renderer calls them
-`category`/`year`/`desc` internally; you never have to.
+Research and posts use the same field names.
+
+An entry with no body renders its title and its date and nothing else. There is no
+fallback to the summary. That holds for research entries as well as posts: an
+unfinished piece is meant to look unfinished.
 
 ## What renders
 
@@ -50,8 +50,13 @@ Not supported: LaTeX math, tables, footnotes.
 
     node scripts/serve.mjs
 
-Builds, watches `posts/` and `research/`, and serves on http://localhost:4000
-with the routing fallback the SPA needs. Save in Obsidian, reload the browser.
+Builds, watches `posts/`, `research/` and `assets/`, and serves `_site/` on
+http://localhost:4000. Save in Obsidian, reload the browser.
+
+Restart the server, do not just reload, after editing anything under `scripts/`
+or `site.config.mjs`. Node caches those modules when the server starts, so a
+running server keeps rebuilding with the old code and silently overwrites a
+correct build with a stale one.
 
     node scripts/build-content.mjs
 
@@ -59,7 +64,6 @@ Build only. A malformed entry fails here with the filename and line number.
 
 ## Publishing
 
-Commit the `.md` file and push. The deploy workflow runs the build itself, then
-deletes `posts/`, `research/` and `scripts/` before uploading, so the markdown
-sources and any drafts are never served. The two generated files are gitignored;
-Actions regenerates them every deploy.
+Commit the `.md` file and push. The deploy workflow runs the build, which writes
+`_site/`, and uploads only that directory. The markdown sources are never copied
+into it, so drafts and unpublished writing are never served.

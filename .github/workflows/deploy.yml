@@ -24,12 +24,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - run: node --test tests/
       - run: node scripts/build-content.mjs
-      - name: Drop sources that must not be served
-        run: rm -rf posts research scripts
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
       - id: deployment
         uses: actions/deploy-pages@v4
