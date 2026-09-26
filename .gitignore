@@ -14,3 +14,4 @@ _*.html
 .superpowers/
 .worktrees/
 _site/
+docs/
