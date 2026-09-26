@@ -14,7 +14,7 @@ export const SECTIONS = [
   { dir: 'research', urlPrefix: 'research', heading: 'Research' },
 ];
 
-const PASSTHROUGH = ['CNAME', 'robots.txt', 'favicon.svg', '.nojekyll'];
+const PASSTHROUGH = ['CNAME', 'robots.txt', 'favicon.svg', 'favicon.ico', '.nojekyll'];
 
 function write(outDir, rel, contents) {
   const file = join(outDir, rel);

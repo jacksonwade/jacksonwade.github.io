@@ -182,3 +182,26 @@ test('the index ending is a landmark, so it sits outside main', () => {
   assert.doesNotMatch(html, /<footer[\s\S]*<\/main>/);
   assert.match(html, /<\/main><footer class="ftr">/);
 });
+
+test('the shell links both the ico and the svg favicon', () => {
+  const html = page({ site, title: 'T', description: 'D', canonical: 'https://kamai.uk/', content: '' });
+  assert.match(html, /<link rel="icon" href="\/favicon\.ico" sizes="16x16 32x32 48x48">/);
+  assert.match(html, /<link rel="icon" href="\/favicon\.svg" type="image\/svg\+xml">/);
+});
+
+test('the index name carries the mark before it, hidden from screen readers', () => {
+  const html = indexPage({ site, sections: [{ heading: 'Writing', items: [] }] });
+  assert.match(html, /<h1 class="nm"><svg class="mark nm-mark"[^>]*aria-hidden="true"[\s\S]*?<\/svg>Kamai Jackson-Wade<\/h1>/);
+});
+
+test('every row link carries a hidden mark for the hover', () => {
+  const html = indexPage({ site, sections: [{ heading: 'Writing', items: [post, { ...post, url: '/blog/b' }] }] });
+  assert.equal((html.match(/<a class="row-link"[^>]*><svg class="mark row-mark"[^>]*aria-hidden="true"/g) || []).length, 2);
+});
+
+test('a reading page header is the mark alone, named for screen readers', () => {
+  const html = detailPage({ site, item: post });
+  const top = (html.match(/<header class="top">[\s\S]*?<\/header>/) || [''])[0];
+  assert.match(top, /<a class="brand" href="\/" aria-label="Kamai Jackson-Wade, home"><svg class="mark brand-mark"/);
+  assert.doesNotMatch(top.replace(/<[^>]+>/g, ''), /Kamai/);
+});

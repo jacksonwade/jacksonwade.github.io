@@ -1,5 +1,17 @@
 import { esc, parseBody, renderBody } from './markdown.mjs';
 
+function mark(cls) {
+  return '<svg class="mark ' + cls + '" viewBox="14.25 8.83 65.14 77.93" aria-hidden="true" focusable="false">' +
+    '<g fill="#96463A">' + // rust small: the brand kit's colour for the mark below 64px
+    '<polygon points="44.76 49.08 52.75 48.24 46.91 8.83 42.54 11.82"/>' +
+    '<polygon points="49.51 46.37 52.78 53.72 78.72 40.32 79.39 34.92"/>' +
+    '<polygon points="45.87 54.44 47.54 46.58 14.25 41.23 15.47 46.26"/>' +
+    '<polygon points="51.31 55.05 44.34 51.03 32.16 75.50 34.94 80.02"/>' +
+    '<polygon points="53.66 51.03 46.69 55.05 66.96 86.76 69.94 82.61"/>' +
+    '<circle cx="49.0" cy="51.0" r="4.465"/>' +
+    '</g></svg>';
+}
+
 export function footer(site, { home = false } = {}) {
   return '<footer class="ftr">' +
     (home ? '<a href="/">' + esc(site.name) + '</a>' : '') +
@@ -19,7 +31,8 @@ export function page({ site, title, description, canonical, bodyClass = '', extr
 '<meta name="description" content="' + esc(description) + '">\n' +
 '<meta name="color-scheme" content="dark">\n' +
 '<link rel="canonical" href="' + esc(canonical) + '">\n' +
-'<link rel="icon" href="/favicon.svg">\n' +
+'<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">\n' +
+'<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n' +
 '<link rel="alternate" type="application/rss+xml" title="' + esc(site.name) + '" href="/feed.xml">\n' +
 '<meta property="og:type" content="website">\n' +
 '<meta property="og:url" content="' + esc(canonical) + '">\n' +
@@ -61,7 +74,7 @@ function personJsonLd(site) {
 
 function row(item) {
   return '<li class="row">' +
-    '<a class="row-link" href="' + esc(item.url) + '">' +
+    '<a class="row-link" href="' + esc(item.url) + '">' + mark('row-mark') +
       '<span class="row-title">' + esc(item.title) + '</span>' +
       (item.year ? ' <span class="row-date">' + esc(item.year) + '</span>' : '') +
     '</a>' +
@@ -85,7 +98,7 @@ export function indexPage({ site, sections }) {
     canonical: site.url + '/',
     bodyClass: 'is-index',
     extraHead: personJsonLd(site),
-    content: '<main class="page"><h1 class="nm">' + esc(site.name) + '</h1>' + body +
+    content: '<main class="page"><h1 class="nm">' + mark('nm-mark') + esc(site.name) + '</h1>' + body +
              '</main>' + footer(site),
   });
 }
@@ -98,7 +111,8 @@ export function detailPage({ site, item }) {
   ).join('');
 
   const content =
-    '<header class="top"><a class="brand" href="/">' + esc(site.name) + '</a></header>' +
+    '<header class="top"><a class="brand" href="/" aria-label="' + esc(site.name) + ', home">' +
+      mark('brand-mark') + '</a></header>' +
     '<main class="wrap">' +
       '<article>' +
         '<h1 class="d-title">' + esc(item.title) + '</h1>' +
