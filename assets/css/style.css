@@ -187,6 +187,12 @@ a { color: inherit; text-decoration: none; }
 .is-index .ftr { max-width: 42rem; }
 .is-detail .ftr { max-width: 48rem; margin-top: 3rem; padding-bottom: 2rem; }
 
+/* Touch has no hover, so the ending's links and its plain-text email are
+   otherwise indistinguishable. Desktop is untouched. */
+@media (hover: none) {
+  .ftr a, .d-links a { color: var(--accent); }
+}
+
 /* not found */
 .nf-h { font-size: 2.125rem; font-weight: 600; font-variation-settings: 'opsz' 60; margin: 0 0 0.75rem; }
 .nf-p { color: var(--muted); margin: 0; }
