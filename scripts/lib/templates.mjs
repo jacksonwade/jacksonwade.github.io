@@ -17,6 +17,7 @@ export function footer(site, { home = false } = {}) {
     (home ? '<a href="/">' + esc(site.name) + '</a>' : '') +
     '<span>' + esc(site.email) + '</span>' +
     '<a href="' + esc(site.github) + '" rel="me noopener">GitHub</a>' +
+    '<small class="ftr-rights">&copy; ' + new Date().getFullYear() + ' ' + esc(site.name) + '. All rights reserved.</small>' +
   '</footer>';
 }
 
@@ -28,6 +29,7 @@ export function page({ site, title, description, canonical, bodyClass = '', extr
 '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
 '<title>' + esc(title) + '</title>\n' +
 '<meta name="author" content="' + esc(site.name) + '">\n' +
+'<meta name="copyright" content="&copy; ' + new Date().getFullYear() + ' ' + esc(site.name) + '. All rights reserved.">\n' +
 '<meta name="description" content="' + esc(description) + '">\n' +
 '<meta name="color-scheme" content="dark">\n' +
 '<link rel="canonical" href="' + esc(canonical) + '">\n' +
@@ -72,11 +74,11 @@ function personJsonLd(site) {
   }, null, 2) + '</script>\n';
 }
 
-function row(item) {
+function row(item, { year = true } = {}) {
   return '<li class="row">' +
     '<a class="row-link" href="' + esc(item.url) + '">' + mark('row-mark') +
       '<span class="row-title">' + esc(item.title) + '</span>' +
-      (item.year ? ' <span class="row-date">' + esc(item.year) + '</span>' : '') +
+      (year && item.year ? ' <span class="row-date">' + esc(item.year) + '</span>' : '') +
     '</a>' +
     (item.summary ? '<span class="row-sum">' + esc(item.summary) + '</span>' : '') +
   '</li>';
@@ -85,10 +87,15 @@ function row(item) {
 export function indexPage({ site, sections }) {
   const body = sections
     .filter(s => s.items.length)
-    .map(s => '<section class="sec">' +
-      '<h2 class="sec-h">' + esc(s.heading) + '</h2>' +
-      '<ul class="rows" role="list">' + s.items.map(row).join('') + '</ul>' +
-    '</section>')
+    .map(s => {
+      const shown = s.limit ? s.items.slice(0, s.limit) : s.items;
+      const more = s.url && shown.length < s.items.length
+        ? '<a class="sec-more" href="' + esc(s.url) + '">All ' + esc(s.heading.toLowerCase()) + '</a>' : '';
+      return '<section class="sec">' +
+        '<h2 class="sec-h">' + (s.url ? '<a class="sec-link" href="' + esc(s.url) + '">' + esc(s.heading) + '</a>' : esc(s.heading)) + '</h2>' +
+        '<ul class="rows" role="list">' + shown.map(i => row(i)).join('') + '</ul>' + more +
+      '</section>';
+    })
     .join('');
 
   return page({
@@ -103,6 +110,37 @@ export function indexPage({ site, sections }) {
   });
 }
 
+function topBar(site) {
+  return '<header class="top"><a class="brand" href="/" aria-label="' + esc(site.name) + ', home">' +
+    mark('brand-mark') + '</a></header>';
+}
+
+export function libraryPage({ site, heading, url, items }) {
+  const groups = [];
+  for (const item of items) {
+    const last = groups[groups.length - 1];
+    if (last && last.year === item.year) last.items.push(item);
+    else groups.push({ year: item.year, items: [item] });
+  }
+  groups.sort((a, b) => (b.year || '0').localeCompare(a.year || '0'));
+  const list = items.length
+    ? groups.map(g => '<section class="sec">' +
+        (g.year ? '<h2 class="lib-year">' + esc(g.year) + '</h2>' : '') +
+        '<ul class="rows" role="list">' + g.items.map(i => row(i, { year: false })).join('') + '</ul>' +
+      '</section>').join('')
+    : '<p class="lib-empty">Nothing here yet.</p>';
+
+  return page({
+    site,
+    title: heading + ' :: ' + site.name,
+    description: heading + ' by ' + site.name + '.',
+    canonical: site.url + url,
+    bodyClass: 'is-index is-library',
+    content: topBar(site) + '<main class="page"><h1 class="lib-h">' + esc(heading) + '</h1>' + list +
+             '</main>' + footer(site, { home: true }),
+  });
+}
+
 export function detailPage({ site, item }) {
   const { html: bodyHtml } = renderBody(parseBody(item.body));
 
@@ -111,8 +149,7 @@ export function detailPage({ site, item }) {
   ).join('');
 
   const content =
-    '<header class="top"><a class="brand" href="/" aria-label="' + esc(site.name) + ', home">' +
-      mark('brand-mark') + '</a></header>' +
+    topBar(site) +
     '<main class="wrap">' +
       '<article>' +
         '<h1 class="d-title">' + esc(item.title) + '</h1>' +

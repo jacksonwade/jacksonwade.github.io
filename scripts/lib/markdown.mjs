@@ -43,7 +43,15 @@ export function parseBody(body) {
   function flushPara()  { if (para.length)  { blocks.push(para.join(' ').trim()); para = []; } }
   function flushList()  { if (list)  { blocks.push({ list: list }); list = null; } }
   function flushOl()    { if (olist) { blocks.push({ ol: olist }); olist = null; } }
-  function flushQuote() { if (quote) { blocks.push({ quote: quote.join(' ').trim() }); quote = null; } }
+  function flushQuote() {
+    if (!quote) return;
+    let cite = '';
+    const last = quote[quote.length - 1];
+    if (/^--\s+/.test(last)) { cite = last.replace(/^--\s+/, '').trim(); quote.pop(); }
+    const paras = quote.join('\n').split(/\n\s*\n/).map(p => p.split('\n').join(' ').trim()).filter(Boolean);
+    blocks.push({ quote: paras, cite });
+    quote = null;
+  }
   function flushAll()   { flushPara(); flushList(); flushOl(); flushQuote(); }
 
   for (let i = 0; i < lines.length; i++) {
@@ -80,13 +88,14 @@ function blockMarkup(b, headingId) {
   if (typeof b === 'string') return '<p>' + inlineLinks(b) + '</p>';
   if (b.h) {
     const id = headingId(b.h);
-    return '<h2 class="d-h" id="' + id + '">' + inlineLinks(b.h) +
-      '<a class="d-anchor" href="#' + id + '" aria-label="Link to this section">#</a></h2>';
+    return '<h2 class="d-h" id="' + id + '">' + inlineLinks(b.h) + '</h2>';
   }
   if (b.p)     return '<p>' + inlineLinks(b.p) + '</p>';
   if (b.hr)    return '<hr class="d-hr">';
   if (typeof b.code === 'string') return '<pre class="d-pre"><code>' + esc(b.code) + '</code></pre>';
-  if (b.quote) return '<blockquote class="d-quote">' + inlineLinks(b.quote) + '</blockquote>';
+  if (b.quote) return '<figure class="d-quote"><blockquote>' +
+    b.quote.map(p => '<p>' + inlineLinks(p) + '</p>').join('') + '</blockquote>' +
+    (b.cite ? '<figcaption class="d-cite">' + inlineLinks(b.cite) + '</figcaption>' : '') + '</figure>';
   if (b.list)  return '<ul class="d-list">' + b.list.map(li => '<li>' + inlineLinks(li) + '</li>').join('') + '</ul>';
   if (b.ol)    return '<ol class="d-ol">' + b.ol.map(li => '<li>' + inlineLinks(li) + '</li>').join('') + '</ol>';
   if (b.img)   return '<figure class="d-fig"><img src="' + esc(b.img) + '" alt="' +

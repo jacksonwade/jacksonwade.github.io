@@ -49,3 +49,8 @@ test('the sitemap lists absolute urls with lastmod', () => {
   assert.match(xml, /<lastmod>2026-09-25<\/lastmod>/);
   assert.match(xml, /<loc>https:\/\/kamai\.uk\/blog\/t<\/loc>/);
 });
+
+test('the feed states the copyright', () => {
+  const xml = rss({ site, now, items: [] });
+  assert.match(xml, /<copyright>&#169; 2026 Kamai Jackson-Wade\. All rights reserved\.<\/copyright>/);
+});

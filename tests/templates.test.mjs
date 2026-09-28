@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { page, indexPage, detailPage, notFoundPage } from '../scripts/lib/templates.mjs';
+import { page, indexPage, detailPage, notFoundPage, libraryPage } from '../scripts/lib/templates.mjs';
 
 const site = {
   name: 'Kamai Jackson-Wade',
@@ -204,4 +204,62 @@ test('a reading page header is the mark alone, named for screen readers', () => 
   const top = (html.match(/<header class="top">[\s\S]*?<\/header>/) || [''])[0];
   assert.match(top, /<a class="brand" href="\/" aria-label="Kamai Jackson-Wade, home"><svg class="mark brand-mark"/);
   assert.doesNotMatch(top.replace(/<[^>]+>/g, ''), /Kamai/);
+});
+
+test('the Writing heading on the index links to the library', () => {
+  const html = indexPage({ site, sections: [
+    { heading: 'Writing', url: '/blog', items: [post] },
+    { heading: 'Research', items: [{ ...post, url: '/research/r' }] },
+  ] });
+  assert.match(html, /<h2 class="sec-h"><a class="sec-link" href="\/blog">Writing<\/a><\/h2>/);
+  assert.match(html, /<h2 class="sec-h">Research<\/h2>/);
+});
+
+test('the library lists every entry under its heading, with the mark home', () => {
+  const html = libraryPage({ site, heading: 'Writing', url: '/blog', items: [post, { ...post, title: 'Second', url: '/blog/second' }] });
+  assert.match(html, /<title>Writing :: Kamai Jackson-Wade<\/title>/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/kamai\.uk\/blog">/);
+  assert.match(html, /<header class="top"><a class="brand" href="\/" aria-label="Kamai Jackson-Wade, home"><svg class="mark brand-mark"/);
+  assert.match(html, /<h1 class="lib-h">Writing<\/h1>/);
+  assert.equal((html.match(/<li class="row">/g) || []).length, 2);
+  assert.match(html, /<\/main><footer class="ftr">/);
+});
+
+test('an empty library says so rather than showing a bare heading', () => {
+  const html = libraryPage({ site, heading: 'Writing', url: '/blog', items: [] });
+  assert.match(html, /<p class="lib-empty">Nothing here yet\.<\/p>/);
+  assert.doesNotMatch(html, /class="rows"/);
+});
+
+test('the index shows only the newest entries up to the section limit, then a link to the rest', () => {
+  const items = [1, 2, 3, 4, 5].map(n => ({ ...post, title: 'P' + n, url: '/blog/p' + n }));
+  const html = indexPage({ site, sections: [{ heading: 'Writing', url: '/blog', limit: 3, items }] });
+  assert.deepEqual([...html.matchAll(/<span class="row-title">(P\d)<\/span>/g)].map(m => m[1]), ['P1', 'P2', 'P3']);
+  assert.match(html, /<\/ul><a class="sec-more" href="\/blog">All writing<\/a><\/section>/);
+});
+
+test('the index shows no link to the rest when nothing is hidden', () => {
+  const items = [1, 2, 3].map(n => ({ ...post, title: 'P' + n, url: '/blog/p' + n }));
+  const html = indexPage({ site, sections: [{ heading: 'Writing', url: '/blog', limit: 3, items }] });
+  assert.equal((html.match(/class="row"/g) || []).length, 3);
+  assert.doesNotMatch(html, /sec-more/);
+});
+
+test('the library groups entries under their year, newest year first, undated last', () => {
+  const items = [
+    { ...post, title: 'A', year: '2027', url: '/blog/a' },
+    { ...post, title: 'B', year: '2026', url: '/blog/b' },
+    { ...post, title: 'C', year: '2026', url: '/blog/c' },
+    { ...post, title: 'D', year: '', url: '/blog/d' },
+  ];
+  const html = libraryPage({ site, heading: 'Writing', url: '/blog', items });
+  assert.deepEqual([...html.matchAll(/<h2 class="lib-year">(\d{4})<\/h2>/g)].map(m => m[1]), ['2027', '2026']);
+  assert.match(html, /2026<\/h2><ul class="rows" role="list"><li class="row">[\s\S]*?>B<[\s\S]*?>C<[\s\S]*?<\/ul>/);
+  assert.match(html, /<section class="sec"><ul class="rows" role="list"><li class="row">[\s\S]*?>D</);
+  assert.doesNotMatch(html, /row-date/);
+});
+
+test('every footer carries a quiet all-rights-reserved line', () => {
+  const html = detailPage({ site, item: post });
+  assert.match(html, new RegExp('<small class="ftr-rights">&copy; ' + new Date().getFullYear() + ' Kamai Jackson-Wade\\. All rights reserved\\.</small></footer>'));
 });

@@ -4,13 +4,13 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import SITE from '../site.config.mjs';
 import { readSection } from './lib/content.mjs';
-import { indexPage, detailPage, notFoundPage } from './lib/templates.mjs';
+import { indexPage, detailPage, notFoundPage, libraryPage } from './lib/templates.mjs';
 import { rss, sitemap } from './lib/feeds.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const SECTIONS = [
-  { dir: 'posts',    urlPrefix: 'blog',     heading: 'Writing' },
+  { dir: 'posts',    urlPrefix: 'blog',     heading: 'Writing', library: true, homeLimit: 3 },
   { dir: 'research', urlPrefix: 'research', heading: 'Research' },
 ];
 
@@ -38,7 +38,13 @@ export function build({ outDir = join(ROOT, '_site'), quiet = false } = {}) {
       dir: join(ROOT, section.dir),
       urlPrefix: section.urlPrefix,
     });
-    sections.push({ heading: section.heading, items });
+    const url = section.library ? '/' + section.urlPrefix : '';
+    sections.push({ heading: section.heading, url, limit: section.homeLimit || 0, items });
+    if (url) {
+      written.push(write(outDir, section.urlPrefix + '/index.html',
+        libraryPage({ site: SITE, heading: section.heading, url, items })));
+      sitemapEntries.push({ url, iso: '' });
+    }
     if (section.urlPrefix === 'blog') posts = items;
 
     for (const item of items) {

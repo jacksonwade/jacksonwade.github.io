@@ -53,3 +53,25 @@ test('inline markdown in a heading is stripped from its id and its contents labe
   assert.deepEqual(headings, [{ id: 'bold-and-a-link', text: 'Bold and a link' }]);
   assert.match(html, /<strong>Bold<\/strong>/);
 });
+
+test('a heading carries no link, so clicking it never changes the address', () => {
+  const { html } = renderBody(parseBody('## The Point\n\ntext\n'));
+  assert.equal(html.match(/<h2[\s\S]*?<\/h2>/)[0], '<h2 class="d-h" id="the-point">The Point</h2>');
+  assert.doesNotMatch(html, /d-anchor|href="#/);
+});
+
+test('a quote renders as a figure holding the blockquote', () => {
+  const { html } = renderBody(parseBody('> We suffer more in imagination\n> than in reality.\n'));
+  assert.equal(html, '<figure class="d-quote"><blockquote><p>We suffer more in imagination than in reality.</p></blockquote></figure>');
+});
+
+test('a bare > line splits a quote into paragraphs', () => {
+  const { html } = renderBody(parseBody('> First.\n>\n> Second.\n'));
+  assert.match(html, /<blockquote><p>First\.<\/p><p>Second\.<\/p><\/blockquote>/);
+});
+
+test('a last line starting with -- becomes the attribution, outside the quoted words', () => {
+  const { html } = renderBody(parseBody('> We suffer more in imagination than in reality.\n> -- Seneca, *Letters*\n'));
+  assert.equal(html, '<figure class="d-quote"><blockquote><p>We suffer more in imagination than in reality.</p></blockquote>' +
+    '<figcaption class="d-cite">Seneca, <em>Letters</em></figcaption></figure>');
+});

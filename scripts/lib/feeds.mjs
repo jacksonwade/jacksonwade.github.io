@@ -33,6 +33,7 @@ export function rss({ site, items, now = new Date() }) {
 '  <link>' + esc(site.url) + '/</link>\n' +
 '  <description>' + esc(site.description) + '</description>\n' +
 '  <language>en</language>\n' +
+'  <copyright>&#169; ' + now.getUTCFullYear() + ' ' + esc(site.name) + '. All rights reserved.</copyright>\n' +
 '  <lastBuildDate>' + rfc822('', now) + '</lastBuildDate>\n' +
 '  <atom:link href="' + esc(site.url) + '/feed.xml" rel="self" type="application/rss+xml"/>\n' +
 entries +

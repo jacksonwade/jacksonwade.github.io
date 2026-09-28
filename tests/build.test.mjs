@@ -36,3 +36,11 @@ test('markdown sources are never copied into the output', () => {
   assert.equal(existsSync(join(out, 'posts')), false);
   assert.equal(existsSync(join(out, 'scripts')), false);
 });
+
+test('the build writes the writing library and lists it in the sitemap', () => {
+  const out = mkdtempSync(join(tmpdir(), 'site-'));
+  build({ outDir: out, quiet: true });
+  assert.ok(existsSync(join(out, 'blog', 'index.html')), 'blog/index.html');
+  assert.match(readFileSync(join(out, 'blog', 'index.html'), 'utf8'), /<h1 class="lib-h">Writing<\/h1>/);
+  assert.match(readFileSync(join(out, 'sitemap.xml'), 'utf8'), /<loc>https:\/\/kamai\.uk\/blog<\/loc>/);
+});
